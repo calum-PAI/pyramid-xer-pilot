@@ -1,0 +1,559 @@
+/* =============================================================
+   Pyramid AI — Schedule Intelligence
+   Foundations copied from the Pyramid AI design system
+   (colors_and_type.css) + app-level component styles.
+   ============================================================= */
+
+:root {
+  /* ── Brand (vibrant blue) ── */
+  --brand-100: #f0f4ff;
+  --brand-200: #f0f4ff;
+  --brand-300: #3267ff;
+  --brand-primary: #0000c6;
+  --brand-primary-deep: #0c0873;
+  --brand-gradient: linear-gradient(180deg, #0000c6 0%, #0c0873 100%);
+  --brand-banner-gradient: linear-gradient(90deg, #0000c6 0%, #3267ff 100%);
+
+  --secondary: #432dd7;
+  --sky-300: #a0eaff;
+  --capri-300: #66b7ff;
+
+  /* ── Foreground ── */
+  --fg-1: #0f0f0f;
+  --fg-3: #404040;
+  --fg-4: #737373;
+  --fg-5: #aeaeae;
+  --fg-on-brand: #ffffff;
+  --fg-on-tint: #03285b;
+
+  /* ── Background ── */
+  --bg-app: #ffffff;
+  --bg-card: #ffffff;
+  --bg-tint: #f0f4ff;
+  --bg-mute: #f2f2f2;
+  --bg-wash: #f7fbff;
+  --bg-overlay: rgba(13, 6, 45, 0.45);
+
+  /* ── Border ── */
+  --border-1: #e8eaff;
+  --border-2: #dbdbdb;
+  --border-3: #e5e5e5;
+
+  /* ── Semantic ── */
+  --success: #65c24f;
+  --success-bg: #ecfdf5;
+  --success-ink: #007a55;
+  --warning: #fc8a21;
+  --warning-bg: #fff7ed;
+  --warning-ink: #ca3500;
+  --danger: #e92b1e;
+  --danger-bg: #fce5e3;
+  --danger-ink: #c6005c;
+  --info: #3267ff;
+  --info-bg: #f0f4ff;
+  --info-ink: #0000c6;
+
+  /* ── Category tag palette ── */
+  --tag-safety-bg: #0000c6;
+  --tag-technical-bg: #5b4fd1;
+  --tag-pm-bg: #14b8a6;
+  --tag-construction-bg: #a07a4e;
+  --tag-commercial-bg: #db6b97;
+  --tag-operations-bg: #f59e0b;
+
+  /* ── Type ── */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+    Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+
+  --fs-display: 48px;
+  --fs-h1: 40px;
+  --fs-h2: 32px;
+  --fs-h3: 24px;
+  --fs-subheading: 18px;
+  --fs-body-1: 16px;
+  --fs-body-2: 14px;
+  --fs-label: 12px;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* ── Radii ── */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-2xl: 24px;
+  --r-pill: 9999px;
+
+  /* ── Shadows ── */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px -2px rgba(112, 144, 176, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 32px -8px rgba(13, 6, 45, 0.18),
+    0 4px 8px -4px rgba(13, 6, 45, 0.08);
+  --shadow-focus: 0 0 0 3px rgba(0, 0, 198, 0.18);
+
+  /* ── Spacing ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-fast: 120ms;
+  --t-base: 180ms;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--fg-1);
+  background: var(--bg-app);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── Type primitives ── */
+.h1 {
+  font-size: var(--fs-h1);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.h2 {
+  font-size: var(--fs-h2);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.h3 {
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  margin: 0;
+}
+.subheading {
+  font-size: var(--fs-subheading);
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0;
+}
+.body-1 {
+  font-size: var(--fs-body-1);
+  line-height: 1.5;
+}
+.body-2 {
+  font-size: var(--fs-body-2);
+  line-height: 1.45;
+}
+.eyebrow {
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-4);
+}
+.mono {
+  font-family: var(--font-mono);
+}
+.muted {
+  color: var(--fg-4);
+}
+
+/* ── Scrollbars ── */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #d7dbf2;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #b9c0ea;
+  background-clip: content-box;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--r-pill);
+  border: 1px solid transparent;
+  cursor: pointer;
+  padding: 9px 16px;
+  transition: all var(--t-base) var(--ease-out);
+  white-space: nowrap;
+}
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+.btn-primary {
+  background: var(--brand-gradient);
+  color: var(--fg-on-brand);
+  box-shadow: var(--shadow-sm);
+}
+.btn-primary:hover {
+  background: var(--brand-primary-deep);
+  opacity: 0.94;
+}
+.btn-primary:disabled {
+  background: #b9bceb;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.btn-secondary {
+  background: var(--bg-app);
+  border-color: var(--border-1);
+  color: var(--fg-1);
+}
+.btn-secondary:hover {
+  background: var(--bg-tint);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--fg-1);
+}
+.btn-ghost:hover {
+  background: var(--bg-tint);
+}
+
+/* ── Card ── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+}
+.card-pad {
+  padding: 20px;
+}
+
+/* ── Pills ── */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: var(--r-pill);
+  padding: 3px 10px;
+  line-height: 1.4;
+}
+.status-pill .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+}
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  border-radius: var(--r-pill);
+  padding: 3px 10px;
+}
+
+/* ── Tables ── */
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.tbl th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--fg-4);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-1);
+  white-space: nowrap;
+}
+.tbl td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-1);
+  color: var(--fg-3);
+  vertical-align: middle;
+}
+.tbl tbody tr:hover {
+  background: var(--bg-wash);
+}
+.tbl tbody tr:last-child td {
+  border-bottom: none;
+}
+
+select:focus-visible,
+input:focus-visible {
+  box-shadow: var(--shadow-focus);
+  border-color: var(--brand-primary) !important;
+}
+select:hover,
+input[type="date"]:hover {
+  border-color: var(--brand-300) !important;
+}
+
+.kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--fg-4);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-xs);
+  padding: 1px 6px;
+  background: var(--bg-app);
+}
+
+/* =============================================================
+   Responsive layout — grids reflow, sidebar collapses to a rail.
+   ============================================================= */
+
+/* Symmetric tile/KPI strips — auto-wrap by available width */
+.g-kpi {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 16px;
+}
+.g-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px;
+}
+.g-gauges {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 16px;
+}
+.g-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+/* Asymmetric card pairs — stack on narrow, ratio on wide */
+.g-cards-2,
+.g-split-3-2,
+.g-split-2-3,
+.g-2col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+.g-2col {
+  gap: 0;
+}
+@media (min-width: 880px) {
+  .g-cards-2 { grid-template-columns: 1fr 1fr; }
+  .g-split-3-2 { grid-template-columns: 1.5fr 1fr; }
+  .g-split-2-3 { grid-template-columns: 1fr 1.4fr; }
+}
+@media (min-width: 760px) {
+  .g-2col { grid-template-columns: 1fr 1fr; }
+}
+
+/* App shell */
+.app-shell { display: flex; height: 100vh; overflow: hidden; }
+.app-main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-wash); }
+.view-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; }
+.view-pad { padding: 28px 32px 60px; }
+.view-inner { max-width: 1240px; margin: 0 auto; }
+
+@media (max-width: 720px) {
+  .view-pad { padding: 18px 16px 48px; }
+}
+
+/* Sidebar — brand row + minimize widget */
+.app-sidebar { transition: width .24s var(--ease-out), flex-basis .24s var(--ease-out); }
+.sb-brand { display: flex; align-items: center; gap: 10px; padding: 20px 18px 12px; }
+.sb-mark { display: none; }
+.sb-toggle {
+  margin-left: auto; flex: 0 0 30px; width: 30px; height: 30px; border: 0;
+  background: transparent; cursor: pointer; border-radius: 8px;
+  display: grid; place-items: center; color: var(--fg-3);
+  transition: background .12s var(--ease-out);
+}
+.sb-toggle:hover { background: var(--bg-mute); }
+
+/* Collapsed rail — triggered manually (.is-collapsed) or auto on small screens */
+.app-sidebar.is-collapsed { width: 70px !important; flex-basis: 70px !important; min-width: 70px !important; }
+.app-sidebar.is-collapsed .sb-label,
+.app-sidebar.is-collapsed .sb-group,
+.app-sidebar.is-collapsed .sb-brandtext { display: none !important; }
+.app-sidebar.is-collapsed .sb-logo { display: none !important; }
+.app-sidebar.is-collapsed .sb-mark { display: block; }
+.app-sidebar.is-collapsed .sb-item { justify-content: center !important; padding-left: 0 !important; padding-right: 0 !important; }
+.app-sidebar.is-collapsed .sb-footer { justify-content: center; }
+.app-sidebar.is-collapsed .sb-brand { flex-direction: column; gap: 12px; padding: 16px 0 12px; }
+.app-sidebar.is-collapsed .sb-toggle { margin-left: 0; }
+
+@media (max-width: 1024px) {
+  .app-sidebar { width: 70px !important; flex-basis: 70px !important; min-width: 70px !important; }
+  .app-sidebar .sb-label,
+  .app-sidebar .sb-group,
+  .app-sidebar .sb-brandtext { display: none !important; }
+  .app-sidebar .sb-logo { display: none !important; }
+  .app-sidebar .sb-mark { display: block; }
+  .app-sidebar .sb-item { justify-content: center !important; padding-left: 0 !important; padding-right: 0 !important; }
+  .app-sidebar .sb-brand { flex-direction: column; gap: 12px; padding: 16px 0 12px; }
+  .app-sidebar .sb-footer { justify-content: center; }
+  .sb-toggle { display: none; } /* auto-collapsed; manual toggle not shown on small screens */
+}
+
+/* Top bar — let it wrap / hide breadcrumb detail on narrow */
+@media (max-width: 760px) {
+  .crumb-hide { display: none !important; }
+  .topbar { padding: 0 14px !important; gap: 8px; }
+  .btn-label-hide { display: none; }
+}
+
+/* AI narrative: two columns collapse to one on narrow screens */
+@media (max-width: 720px) {
+  .ai-narr-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ── Schedule Assistant (slide-out chatbot) ── */
+.assistant-fab {
+  position: fixed; right: 22px; bottom: 22px; z-index: 60;
+  height: 50px; padding: 0 18px 0 16px; border: 0; border-radius: 9999px;
+  background: var(--brand-banner-gradient); color: #fff; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 9px;
+  font: 600 14px var(--font-sans);
+  box-shadow: 0 10px 26px -6px rgba(0, 0, 198, 0.5);
+  transition: opacity .2s var(--ease-out), transform .15s var(--ease-out);
+}
+.assistant-fab:hover { transform: translateY(-2px); }
+.assistant-fab-label { white-space: nowrap; }
+
+/* In-flow dock — a flex column beside the main content (side-by-side).
+   The main area reflows into the remaining width instead of being covered. */
+.assistant-dock {
+  flex: 0 0 0px; width: 0; align-self: stretch; overflow: hidden;
+  background: var(--bg-card); border-left: 0 solid var(--border-1);
+  transition: flex-basis .28s var(--ease-out), width .28s var(--ease-out);
+  will-change: flex-basis, width;
+}
+.assistant-dock.open {
+  flex-basis: 400px; width: 400px; border-left-width: 1px;
+  box-shadow: -18px 0 46px -20px rgba(13, 6, 45, 0.20);
+}
+.assistant-inner {
+  width: 400px; height: 100%; display: flex; flex-direction: column;
+  background: var(--bg-card);
+}
+
+/* On narrow screens there isn't room for side-by-side — overlay instead. */
+@media (max-width: 900px) {
+  .assistant-dock { position: fixed; top: 0; right: 0; z-index: 61; height: 100vh; flex-basis: 0; }
+  .assistant-dock.open { width: 100vw; box-shadow: -18px 0 46px -20px rgba(13, 6, 45, 0.35); }
+  .assistant-inner { width: 100vw; height: 100vh; }
+}
+@media (max-width: 520px) {
+  .assistant-fab-label { display: none; }
+  .assistant-fab { padding: 0; width: 50px; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .assistant-dock { transition: none; }
+}
+.assistant-typing { display: inline-flex; gap: 3px; align-items: center; }
+.assistant-typing i {
+  width: 5px; height: 5px; border-radius: 9999px; background: var(--brand-primary);
+  display: inline-block; animation: at-bounce 1s infinite ease-in-out both;
+}
+.assistant-typing i:nth-child(1) { animation-delay: -.32s; }
+.assistant-typing i:nth-child(2) { animation-delay: -.16s; }
+@keyframes at-bounce { 0%, 80%, 100% { transform: scale(.5); opacity: .4; } 40% { transform: scale(1); opacity: 1; } }
+
+/* ── Consolidated report ── */
+.print-only { display: none; }
+/* Force brand/section backgrounds to print even when "Background graphics" is off */
+.report-root {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  color-adjust: exact;
+}
+/* The report page is pinned to a fixed width that fits A4 landscape at 1:1,
+   so the printed PDF is pixel-identical to the on-screen report (no scaling). */
+@media screen and (max-width: 1080px) {
+  .report-root .report-cols { grid-template-columns: 1fr !important; }
+}
+@media print {
+  @page { size: A4 landscape; margin: 7mm; }
+  body * { visibility: hidden !important; }
+  .report-root, .report-root * {
+    visibility: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .report-root {
+    position: absolute !important; inset: 0 !important;
+    background: #fff !important; overflow: visible !important;
+  }
+  .report-root .report-page {
+    margin: 0 auto !important; overflow: visible !important;
+    box-shadow: none !important; border-radius: 0 !important;
+  }
+  /* keep the exact on-screen layout — never collapse the 3 columns */
+  .report-root .report-cols { grid-template-columns: 0.9fr 1.15fr 1.15fr !important; break-inside: avoid; }
+  /* the summary (header + columns) stays together as one page */
+  .report-root .report-summary { break-inside: avoid; break-after: page; }
+  /* expand on-screen scroll boxes so every row prints */
+  .report-root [style*="max-height"] { max-height: none !important; overflow: visible !important; }
+  .no-print { display: none !important; }
+  .print-only { display: inline !important; }
+  .report-page-break { break-before: page !important; page-break-before: always !important; }
+  .report-root table { break-inside: auto; }
+  .report-root tr { break-inside: avoid; }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fade-up {
+  animation: fadeUp 280ms var(--ease-out) both;
+}
