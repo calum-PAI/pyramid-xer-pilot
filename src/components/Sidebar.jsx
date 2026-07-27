@@ -44,14 +44,22 @@ export const NAV = [
       { id: "float", label: "Float & Critical Path", icon: Icon.activity },
     ],
   },
+  {
+    group: "Help",
+    items: [
+      { id: "guide", label: "User Guide", icon: Icon.book },
+    ],
+  },
 ];
 
 // Pinned separately at the bottom of the toolbar.
 export const SETTINGS_ITEM = { id: "settings", label: "Settings / Export", icon: Icon.settings };
 
+const ALWAYS_ON = new Set(["upload", "guide"]);
+
 function NavItem({ it, active, ready, onNav }) {
   const isActive = it.id === active;
-  const disabled = !ready && it.id !== "upload";
+  const disabled = !ready && !ALWAYS_ON.has(it.id);
   return (
     <button
       className="sb-item"

@@ -14,6 +14,7 @@ import Float from "./views/Float.jsx";
 import DCMA from "./views/DCMA.jsx";
 import Risk from "./views/Risk.jsx";
 import Settings from "./views/Settings.jsx";
+import Guide from "./views/Guide.jsx";
 import Report from "./components/Report.jsx";
 import ReviewLetter from "./components/ReviewLetter.jsx";
 import AssistantPanel from "./components/AssistantPanel.jsx";
@@ -67,6 +68,7 @@ export default function App() {
   const ready = !!analysis;
 
   const renderView = () => {
+    if (view === "guide") return <Guide />;
     if (!ready || view === "upload")
       return <Upload onFile={run} onDemo={loadDemo} error={error} />;
     const a = analysis;
@@ -105,9 +107,13 @@ export default function App() {
           onReset={reset}
         />
         <div key={view} className="fade-up view-scroll">
-          <div className={view === "upload" ? "" : "view-pad"}>
-            <div className="view-inner">{renderView()}</div>
-          </div>
+          {view === "guide" ? (
+            renderView()
+          ) : (
+            <div className={view === "upload" ? "" : "view-pad"}>
+              <div className="view-inner">{renderView()}</div>
+            </div>
+          )}
         </div>
       </main>
       {showReport && analysis && (

@@ -201,6 +201,12 @@ export const Icon = {
       <polyline points="3 7 12 13 21 7" />
     </S>
   ),
+  book: (p) => (
+    <S {...p}>
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+    </S>
+  ),
   copy: (p) => (
     <S {...p}>
       <rect x="9" y="9" width="11" height="11" rx="2" />
