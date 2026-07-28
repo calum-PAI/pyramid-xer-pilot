@@ -11,8 +11,6 @@ export default function Overview({ a }) {
 
   const spiL = spiLabel(evms.SPI);
   const cpiL = cpiLabel(evms.CPI);
-  const forecast = evms.forecastFinish;
-  const finishDelta = Math.round((forecast - model.project.planFinish) / 86400000);
   const unresourced = model.hasCost
     ? model.activities.filter((x) => !x.isMilestone && x.budget <= 0).length
     : model.activities.filter((x) => !x.isMilestone).length;
@@ -50,7 +48,6 @@ export default function Overview({ a }) {
           <div style={grid(3, 12)}>
             <Meta label="Plan start" value={fmtDate(model.project.planStart)} />
             <Meta label="Planned finish" value={fmtDate(model.project.planFinish)} />
-            <Meta label="Forecast finish" value={fmtDate(forecast)} tone={finishDelta > 0 ? "danger" : "success"} />
             <Meta label="Total activities" value={c.activities} />
             <Meta label="Relationships" value={model.counts.relationships} />
             <Meta label="Resources" value={c.resources} />
@@ -122,11 +119,17 @@ export default function Overview({ a }) {
       <div className="card">
           <div style={{ padding: "18px 20px 4px" }}>
             <SectionTitle icon={<Icon.layers size={18} />}>WBS Summary</SectionTitle>
+            <p className="body-2 muted" style={{ margin: "6px 0 2px", fontSize: 12.5, lineHeight: 1.5 }}>
+              <strong style={{ color: "var(--fg-3)" }}>Float status</strong> reflects the least slack in each WBS branch:
+              <strong style={{ color: "var(--danger-ink)" }}> Negative</strong> &mdash; behind the dates it needs to hit;
+              <strong style={{ color: "var(--warning-ink)" }}> Critical</strong> &mdash; zero float, sitting on the critical path so any delay moves the finish date;
+              <strong style={{ color: "var(--success-ink)" }}> Healthy</strong> &mdash; positive float (spare time). The comment explains why each branch is flagged.
+            </p>
           </div>
           <div style={{ overflowX: "auto" }}>
             <table className="tbl">
               <thead>
-                <tr><th>WBS</th><th style={{ textAlign: "right" }}>Acts</th><th style={{ textAlign: "right" }}>% Complete</th><th>Float status</th></tr>
+                <tr><th>WBS</th><th style={{ textAlign: "right" }}>Acts</th><th style={{ textAlign: "right" }}>% Complete</th><th>Float status</th><th>Why it's flagged</th></tr>
               </thead>
               <tbody>
                 {a.wbs.map((w) => (
@@ -135,6 +138,7 @@ export default function Overview({ a }) {
                     <td style={{ textAlign: "right" }}>{w.total}</td>
                     <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{w.pctComplete}%</td>
                     <td><StatusPill tone={floatStatusTone(w.floatStatus)}>{w.floatStatus}</StatusPill></td>
+                    <td className="muted" style={{ fontSize: 12.5, lineHeight: 1.45, maxWidth: 360 }}>{wbsWhy(w)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -175,9 +179,6 @@ export default function Overview({ a }) {
               <strong>{unresourced} activities are unresourced</strong> — earned value and histogram accuracy is reduced.
             </Insight>
           )}
-          <Insight tone={finishDelta > 0 ? "warning" : "success"}>
-            Forecast completion: <strong>{fmtDate(forecast)}</strong> ({finishDelta > 0 ? `+${finishDelta} days vs plan` : finishDelta < 0 ? `${finishDelta} days vs plan` : "on plan"}).
-          </Insight>
         </ul>
       </AiCallout>
     </div>
@@ -204,4 +205,26 @@ function Meta({ label, value, tone }) {
 const grid = (n, gap = 16) => ({ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap });
 function statusTone(s) { return s === "TK_Complete" ? "success" : s === "TK_Active" ? "warning" : "neutral"; }
 function floatStatusTone(s) { return s === "Negative" ? "danger" : s === "Critical" ? "warning" : "success"; }
+
+// List the driving activities (code, name, float), worst first, capped.
+function listDrivers(arr, cap = 3) {
+  const top = arr.slice(0, cap).map((d) => `${d.code} ${d.name} (${Math.round(d.float)}d)`);
+  const more = arr.length - top.length;
+  return top.join("; ") + (more > 0 ? `; +${more} more` : "");
+}
+
+// Plain-English reason a WBS branch carries its float status, naming the
+// specific activities that drive it.
+function wbsWhy(w) {
+  const f = isFinite(w.minFloat) ? Math.round(w.minFloat) : null;
+  const drivers = w.drivers || [];
+  if (w.floatStatus === "Negative") {
+    const neg = drivers.filter((d) => d.float < 0);
+    return `${w.neg} activit${w.neg === 1 ? "y is" : "ies are"} in negative float (as low as ${f}d) — already behind the dates needed to hit the plan. Driving activities: ${listDrivers(neg)}.`;
+  }
+  if (w.floatStatus === "Critical") {
+    return `${w.crit} activit${w.crit === 1 ? "y sits" : "ies sit"} on the critical path at zero float — any slip flows straight to the project finish. Critical activities: ${listDrivers(drivers)}.`;
+  }
+  return `Lowest total float ${f == null ? "—" : f + "d"} — comfortable slack, so this branch is not currently driving the finish date.`;
+}
 function toneColor(t) { return { danger: "var(--danger-ink)", warning: "var(--warning-ink)", success: "var(--success-ink)", info: "var(--info-ink)" }[t] || "var(--fg-1)"; }

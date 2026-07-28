@@ -463,6 +463,7 @@ export function computeWBS(model) {
         minFloat: Infinity,
         neg: 0,
         crit: 0,
+        drivers: [],
       });
     g.total += 1;
     if (a.status === "TK_Complete") g.complete += 1;
@@ -472,15 +473,22 @@ export function computeWBS(model) {
     g.minFloat = Math.min(g.minFloat, a.totalFloat);
     if (a.totalFloat < 0) g.neg += 1;
     if (a.critical) g.crit += 1;
+    // the specific activities driving the branch's float status
+    if (a.totalFloat <= 0)
+      g.drivers.push({ code: a.code, name: a.name, float: a.totalFloat, done: a.status === "TK_Complete" });
   });
 
   return Object.values(groups)
-    .map((g) => ({
-      ...g,
-      pctComplete: Math.round(g.pctSum / g.total),
-      floatStatus:
-        g.minFloat < 0 ? "Negative" : g.minFloat === 0 ? "Critical" : "Healthy",
-    }))
+    .map((g) => {
+      // worst float first; incomplete drivers ahead of completed ones
+      g.drivers.sort((x, y) => x.done - y.done || x.float - y.float);
+      return {
+        ...g,
+        pctComplete: Math.round(g.pctSum / g.total),
+        floatStatus:
+          g.minFloat < 0 ? "Negative" : g.minFloat === 0 ? "Critical" : "Healthy",
+      };
+    })
     .sort((a, b) => a.minFloat - b.minFloat);
 }
 
