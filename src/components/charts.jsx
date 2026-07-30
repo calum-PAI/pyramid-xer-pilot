@@ -5,10 +5,6 @@ const AXIS = "var(--border-1)";
 const GRID = "#eef1fb";
 const LABEL = "var(--fg-4)";
 
-function niceMonthLabel(d) {
-  return d.toLocaleDateString("en-GB", { month: "short", year: "2-digit" });
-}
-
 // ── Progress S-curve: Baseline (dashed) / Current (solid) / Actual (green) ──
 export function ProgressSCurveChart({ data, metricLabel, height = 360 }) {
   const [hover, setHover] = useState(null); // { i, x, y }
@@ -150,59 +146,6 @@ export function Legend({ items }) {
         </div>
       ))}
     </div>
-  );
-}
-
-// ── Stacked resource histogram (monthly) ─────────────────────
-export function HistogramChart({ data, colorFor, height = 300 }) {
-  const rows = data.rows;
-  const W = 860, H = height, pad = { l: 52, r: 20, t: 16, b: 40 };
-  const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
-  const maxY = data.peak * 1.05 || 1;
-  const n = rows.length;
-  const bw = Math.min(38, (iw / n) * 0.7);
-  const x = (i) => pad.l + (i + 0.5) * (iw / n);
-  const y = (v) => pad.t + ih - (v / maxY) * ih;
-  const step = Math.max(1, Math.floor(n / 10));
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block" }}>
-      {Array.from({ length: 5 }, (_, i) => {
-        const v = (maxY / 4) * i;
-        return (
-          <g key={i}>
-            <line x1={pad.l} x2={W - pad.r} y1={y(v)} y2={y(v)} stroke={GRID} />
-            <text x={pad.l - 8} y={y(v) + 4} textAnchor="end" style={{ fontSize: 10, fill: LABEL, fontFamily: "var(--font-sans)" }}>
-              {Math.round(v)}
-            </text>
-          </g>
-        );
-      })}
-      {rows.map((r, i) => {
-        let acc = 0;
-        const ids = Object.keys(r.byRsrc);
-        return (
-          <g key={i}>
-            {ids.map((rid, k) => {
-              const val = r.byRsrc[rid];
-              const h = (val / maxY) * ih;
-              const yy = pad.t + ih - acc - h;
-              acc += h;
-              return (
-                <rect key={k} x={x(i) - bw / 2} y={yy} width={bw} height={Math.max(h, 0)}
-                  fill={colorFor(rid)} rx="1.5" />
-              );
-            })}
-            {i % step === 0 && (
-              <text x={x(i)} y={H - 14} textAnchor="middle" style={{ fontSize: 9.5, fill: LABEL, fontFamily: "var(--font-sans)" }}>
-                {niceMonthLabel(r.date)}
-              </text>
-            )}
-          </g>
-        );
-      })}
-      <line x1={pad.l} x2={W - pad.r} y1={pad.t + ih} y2={pad.t + ih} stroke={AXIS} />
-    </svg>
   );
 }
 

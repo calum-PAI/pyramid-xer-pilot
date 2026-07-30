@@ -53,9 +53,9 @@ export function buildRiskRegister(model, evms, dcma, floatA) {
       title: "Schedule performance eroding",
       desc: `SPI ${evms.SPI.toFixed(
         2
-      )} indicates the project is earning value slower than planned. Forecast finish ${fmtDate(
-        evms.forecastFinish
-      )}.`,
+      )} indicates the project is earning value slower than planned, putting the planned completion of ${fmtDate(
+        model.project.planFinish
+      )} at risk.`,
       likelihood: 4,
       impact: 4,
       mitigation:

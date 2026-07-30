@@ -49,6 +49,12 @@ export function computeEVMS(model) {
     }
   }
 
+  // Are the cost metrics backed by real recorded actual cost? Only true when
+  // the schedule is cost-loaded AND actual cost has been captured. When it is
+  // false, AC is synthesised (= EV below), so CPI/CV/EAC/VAC/TCPI all collapse
+  // to a trivially "perfect" reading and must be shown as not-yet-measured.
+  const costMeasured = hasCost && AC > 0;
+
   // If cost-loaded but no actuals captured yet, approximate AC from EV.
   if (hasCost && AC === 0 && EV > 0) AC = EV;
 
@@ -64,6 +70,7 @@ export function computeEVMS(model) {
 
   return {
     hasCost,
+    costMeasured,
     currency: model.project.currency,
     BAC,
     PV,

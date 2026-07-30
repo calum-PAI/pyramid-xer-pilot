@@ -7,22 +7,23 @@ export function computeFloat(model) {
   const acts = model.activities;
   const incomplete = acts.filter((a) => a.status !== "TK_Complete");
 
-  const critical = acts
+  // Float exposure is a forward-looking measure — a completed activity's stored
+  // float is historical and not a live risk, so critical / negative / the float
+  // distribution are all assessed over INCOMPLETE (remaining) work only.
+  const critical = incomplete
     .filter((a) => a.totalFloat <= 0)
     .sort((a, b) => a.totalFloat - b.totalFloat);
-  const negative = acts
+  const negative = incomplete
     .filter((a) => a.totalFloat < 0)
     .sort((a, b) => a.totalFloat - b.totalFloat);
   const nearCritical = incomplete
     .filter((a) => a.totalFloat > 0 && a.totalFloat <= 10)
     .sort((a, b) => a.totalFloat - b.totalFloat);
 
-  // driving / longest path = critical & incomplete in chronological order
-  const drivingPath = critical
-    .filter((a) => a.status !== "TK_Complete")
-    .sort((a, b) => (a.start || 0) - (b.start || 0));
+  // driving / longest path = critical (already incomplete) in chronological order
+  const drivingPath = [...critical].sort((a, b) => (a.start || 0) - (b.start || 0));
 
-  // float distribution buckets
+  // float distribution buckets — over remaining (incomplete) activities
   const buckets = [
     { label: "Negative", min: -Infinity, max: -0.001, count: 0, tone: "danger" },
     { label: "0 (Critical)", min: -0.001, max: 0.001, count: 0, tone: "warning" },
@@ -31,7 +32,7 @@ export function computeFloat(model) {
     { label: "21–44d", min: 20, max: 44, count: 0, tone: "success" },
     { label: "> 44d", min: 44, max: Infinity, count: 0, tone: "success" },
   ];
-  acts.forEach((a) => {
+  incomplete.forEach((a) => {
     const f = a.totalFloat;
     for (const b of buckets) {
       if (f > b.min && f <= b.max) {
@@ -41,6 +42,9 @@ export function computeFloat(model) {
     }
   });
 
+  // Critical activities (now incomplete-only) as a share of the whole schedule —
+  // denominator kept as total activities so it reconciles with the "N of total"
+  // wording used in the float narrative.
   const criticalPct = acts.length
     ? Math.round((critical.length / acts.length) * 100)
     : 0;

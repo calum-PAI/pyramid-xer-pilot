@@ -26,7 +26,7 @@ export default function Report({ a, onClose }) {
 
   const { model, evms, dcma, floatA, histogram } = a;
   // recomputed with the same engines the on-screen views use → figures align
-  const scurveCost = useMemo(() => computeSCurves(model, evms, { metric: "cost", period: "month" }), [model, evms]);
+  const scurveCost = useMemo(() => computeSCurves(model, { metric: "cost", period: "month" }), [model]);
   const histMonthly = useMemo(() => computeResourceHistogram(model, { period: "month", groupBy: "resource" }), [model]);
   const phases = useMemo(() => computePhaseAnalysis(model, {}), [model]);
   const disciplines = useMemo(() => computeDisciplineAnalysis(model, {}), [model]);
@@ -93,20 +93,23 @@ export default function Report({ a, onClose }) {
               <HalfGauge value={r.actualPct} plannedPct={r.plannedPct} />
             </MiniCard>
 
-            <MiniCard title="Schedule Operation Date">
+            <MiniCard title="Planned Completion Date">
               <table style={S.tbl}>
-                <thead><tr style={S.thRow}><Th>Project</Th><Th>PA Date</Th><Th>Forecast</Th><Th /></tr></thead>
+                <thead><tr style={S.thRow}><Th>Project</Th><Th>Planned Completion</Th><Th /></tr></thead>
                 <tbody>
                   {r.ops.map((o) => (
                     <tr key={o.project} style={S.tr}>
                       <Td strong>{o.project}</Td>
-                      <Td>{fmtDate(o.pa)}</Td>
-                      <Td>{fmtDate(o.forecast)}</Td>
-                      <Td><span style={{ width: 10, height: 10, borderRadius: 9999, display: "inline-block", background: o.onTrack ? "var(--success)" : "var(--danger)" }} /></Td>
+                      <Td>{fmtDate(o.planned)}</Td>
+                      <Td><span title={o.onTrack ? "On track" : "Behind plan"} style={{ width: 10, height: 10, borderRadius: 9999, display: "inline-block", background: o.onTrack ? "var(--success)" : "var(--danger)" }} /></Td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              <div className="body-2 muted" style={{ fontSize: 10, marginTop: 5, lineHeight: 1.4 }}>
+                Planned (contract) completion from the current schedule. Status reflects schedule performance to date
+                (SPI {r.ops[0] ? r.ops[0].spi.toFixed(2) : "—"}).
+              </div>
             </MiniCard>
           </Section>
 
@@ -150,6 +153,12 @@ export default function Report({ a, onClose }) {
               <Stat value={String(r.milestones.onTrack)} label="On-Track" valueColor="var(--info-ink)" />
               <Stat value={String(r.milestones.delayed)} label="Forecast Delayed" valueColor="var(--danger-ink)" />
             </div>
+            <div className="body-2 muted" style={{ fontSize: 10.5, lineHeight: 1.45, marginTop: -2 }}>
+              {r.milestones.remainingCount} of {r.milestones.total} milestones remaining —{" "}
+              <strong style={{ color: "var(--fg-3)" }}>{r.milestones.upcomingCount}</strong> due within the {months}-month
+              lookahead{r.milestones.beyondCount > 0 ? <>, <strong style={{ color: "var(--fg-3)" }}>{r.milestones.beyondCount}</strong> scheduled beyond it</> : ""}.
+              ({r.milestones.completedCount} complete + {r.milestones.upcomingCount} upcoming + {r.milestones.beyondCount} beyond = {r.milestones.total}.)
+            </div>
             <MiniCard title="Upcoming by month (on-track / delayed)">
               <StackMini data={r.lookaheadBars} />
             </MiniCard>
@@ -176,6 +185,42 @@ export default function Report({ a, onClose }) {
             </div>
           </Section>
         </div>
+
+        {/* Current execution — in-progress & delayed activities (page 1) */}
+        <div style={{ padding: "0 14px 16px" }}>
+          <Section title="In-Progress & Delayed Activities">
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+              <Stat value={String(r.execution.inProgressCount)} label="In Progress" valueColor="var(--warning-ink)" />
+              <Stat value={String(r.execution.delayedCount)} label="Delayed · negative float" valueColor={r.execution.delayedCount ? "var(--danger-ink)" : "var(--success-ink)"} />
+              <Stat value={`${r.milestones.completedCount}/${r.milestones.total}`} label="Milestones complete" />
+              <Stat value={String(r.milestones.upcomingCount)} label={`Upcoming milestones (${months}mo)`} />
+            </div>
+            <div style={S.detailHdr}>Activities currently in progress or behind (negative float)</div>
+            <div style={{ overflow: "auto" }}>
+              <table style={S.tbl}>
+                <thead><tr style={S.thRow}><Th>Status</Th><Th>Act ID</Th><Th>Activity</Th><Th>Scope</Th><Th>% Compl</Th><Th>Total Float</Th></tr></thead>
+                <tbody>
+                  {r.execution.rows.map((t) => (
+                    <tr key={t.id} style={S.tr}>
+                      <Td><Pill tone={t.active ? "warning" : "danger"}>{t.active ? "IN PROGRESS" : "DELAYED"}</Pill></Td>
+                      <Td strong>{t.code}</Td>
+                      <Td>{t.name}</Td>
+                      <Td>{t.wbs}</Td>
+                      <Td>{t.pct}%</Td>
+                      <Td><span style={{ color: t.delayed ? "var(--danger-ink)" : "var(--fg-3)", fontWeight: t.delayed ? 700 : 400 }}>{t.float.toFixed(1)}d</span></Td>
+                    </tr>
+                  ))}
+                  {r.execution.rows.length === 0 && <tr><Td colSpan={6} muted center>No in-progress or delayed activities at the data date.</Td></tr>}
+                </tbody>
+              </table>
+            </div>
+            {r.execution.hiddenCount > 0 && (
+              <div className="body-2 muted" style={{ fontSize: 11 }}>
+                +{r.execution.hiddenCount} further activities with negative float — see the Float &amp; Critical Path page.
+              </div>
+            )}
+          </Section>
+        </div>
         </div>
 
         {/* ═══ Per-function pages ═══ */}
@@ -199,7 +244,7 @@ export default function Report({ a, onClose }) {
               ["Variance at Completion", "VAC = BAC − EAC", money(evms.VAC), evms.VAC < 0 ? "Forecast over-run" : "Forecast saving"],
               ["To-Complete Perf. Index", "TCPI", evms.TCPI.toFixed(2), "Efficiency required on remaining work"],
               ["% Planned / Earned / Actual", "PV/EV/AC ÷ BAC", `${(evms.pctPlanned * 100).toFixed(1)}% / ${(evms.pctEarned * 100).toFixed(1)}% / ${(evms.pctActual * 100).toFixed(1)}%`, "Progress to date"],
-              ["Forecast finish", "SPI-adjusted", fmtDate(evms.forecastFinish), "Projected completion"],
+              ["Planned completion", "Contract / plan", fmtDate(model.project.planFinish), "Planned completion date from the schedule"],
             ]} />
         </ReportPage>
 

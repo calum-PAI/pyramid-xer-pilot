@@ -31,19 +31,24 @@ export function buildReport(a, lookaheadMonths = 6) {
     })
     .sort((x, y) => (y.done || 0) - (x.done || 0));
 
-  // ── Upcoming milestones (incomplete, within lookahead) ──
-  const upcoming = milestones
-    .filter((m) => m.status !== "TK_Complete")
+  // ── Remaining milestones — shown in the lookahead, reconciled to the total ──
+  // Everything due by the horizon is listed, INCLUDING anything already overdue
+  // (forecast before the window) so a delayed milestone is never silently
+  // dropped. Milestones forecast beyond the horizon are counted separately so
+  // completed + upcoming + beyond always reconciles to the milestone total.
+  const remaining = milestones.filter((m) => m.status !== "TK_Complete");
+  const upcoming = remaining
     .map((m) => {
       const baseline = m.targetEnd || m.targetStart;
       const forecast = m.finish || m.targetEnd;
       const varDays = baseline && forecast ? daysBetween(forecast, baseline) : 0;
       return { m, baseline, forecast, varDays, status: varDays >= 0 ? "On-Track" : "Delayed" };
     })
-    .filter((x) => x.forecast && x.forecast >= monthAgo && x.forecast <= horizon)
+    .filter((x) => x.forecast && x.forecast <= horizon)
     .sort((x, y) => (x.forecast || 0) - (y.forecast || 0));
   const onTrack = upcoming.filter((u) => u.status === "On-Track").length;
   const delayed = upcoming.length - onTrack;
+  const beyondCount = remaining.length - upcoming.length; // forecast past the horizon
 
   // ── SPI trend from the S-curve (cumulative EV/PV per past month) ──
   // The headline SPI/SV use the authoritative EVMS figures; the final trend
@@ -85,12 +90,42 @@ export function buildReport(a, lookaheadMonths = 6) {
     return b && b <= dd;
   }).length;
 
+  // Programme completion is reported against the PLANNED (contract) completion
+  // date — the schedule's own finish — not a synthetic forecast. On-track status
+  // reflects schedule performance to date (SPI), consistent with the platform.
   const ops = [{
     project: model.project.shortName,
-    pa: model.project.planFinish,
-    forecast: evms.forecastFinish,
-    onTrack: evms.forecastFinish <= model.project.planFinish,
+    planned: model.project.planFinish,
+    spi: evms.SPI,
+    onTrack: evms.SPI >= 0.95,
   }];
+
+  // ── Live execution: in-progress & delayed (negative-float) activities ──
+  // The milestone roll-ups above miss current task execution, so the summary
+  // would otherwise show nothing in progress or behind. Surface both here so
+  // the report reconciles with the platform's Activity-Status / Float views.
+  const tasks = model.activities.filter((x) => !x.isMilestone);
+  const inProgress = tasks.filter((x) => x.status === "TK_Active");
+  const delayedTasks = tasks.filter((x) => x.status !== "TK_Complete" && x.totalFloat < 0);
+  const byFloat = (x, y) => x.totalFloat - y.totalFloat; // worst float first
+  // In-progress activities always lead (so live work is never crowded out by
+  // the negative-float backlog), followed by the remaining delayed activities.
+  const inProgIds = new Set(inProgress.map((t) => t.id));
+  const executionRows = [
+    ...[...inProgress].sort(byFloat),
+    ...delayedTasks.filter((t) => !inProgIds.has(t.id)).sort(byFloat),
+  ]
+    .map((t) => ({
+      id: t.id, code: t.code, name: t.name, wbs: t.wbs,
+      pct: t.pctComplete, float: t.totalFloat, statusLabel: t.statusLabel,
+      active: t.status === "TK_Active", delayed: t.totalFloat < 0,
+    }));
+  const execution = {
+    inProgressCount: inProgress.length,
+    delayedCount: delayedTasks.length,
+    rows: executionRows.slice(0, 12),
+    hiddenCount: Math.max(0, executionRows.length - 12),
+  };
 
   return {
     generatedAt: new Date(),
@@ -105,6 +140,7 @@ export function buildReport(a, lookaheadMonths = 6) {
     actualPct: evms.pctEarned * 100,
     plannedPct: evms.pctPlanned * 100,
     ops,
+    execution,
     milestones: {
       total,
       completedCount: completed.length,
@@ -113,6 +149,8 @@ export function buildReport(a, lookaheadMonths = 6) {
       plannedPct: total ? (plannedDone / total) * 100 : 0,
       upcomingCount: upcoming.length,
       onTrack, delayed,
+      remainingCount: remaining.length,
+      beyondCount,
     },
     completed, upcoming, completedBars, lookaheadBars,
   };
