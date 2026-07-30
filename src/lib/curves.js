@@ -215,6 +215,14 @@ export function computeSCurves(model, opts = {}) {
   const rows = [];
   let cb = 0, cc = 0, ce = 0;
   let plannedAtDD = 0, earnedAtDD = 0, baselineAtDD = 0;
+  // A cumulative point at date D means "% completed BY date D". Each bucket's
+  // contribution is therefore plotted at the bucket's END, not its start —
+  // otherwise a wide monthly bucket would show its whole month at the month's
+  // first day, disagreeing with the daily curve at the same date. Start at 0.
+  rows.push({
+    date: new Date(minB.getTime()), baseline: 0, current: 0,
+    actual: minB <= dd ? 0 : null, isPast: minB <= dd,
+  });
   let cursor = new Date(minB.getTime());
   let guard = 0;
   while (cursor <= maxD && guard++ < 6000) {
@@ -222,17 +230,47 @@ export function computeSCurves(model, opts = {}) {
     cb += baseM[k] || 0;
     cc += curM[k] || 0;
     ce += earnM[k] || 0;
-    const past = cursor <= dd; // bucket started on/before the data date
-    if (past) { plannedAtDD = cc; earnedAtDD = ce; baselineAtDD = cb; }
+    const end = nextB(cursor);   // cumulative-through-this-bucket lands on its end date
+    const past = end <= dd;      // the point (dated at bucket end) is fully in the past
     rows.push({
-      date: new Date(k),
+      date: end,
       baseline: (cb / denom) * 100,
       current: (cc / denom) * 100,
-      actual: past ? (ce / denom) * 100 : null,
+      actual: past ? (ce / denom) * 100 : null, // actual only up to the data date
       isPast: past,
     });
-    cursor = nextB(cursor);
+    cursor = end;
   }
+
+  // Exact cumulative as of the data date — computed independently of the
+  // bucket width, so the data-date reading is identical in Daily / Weekly /
+  // Monthly. This anchor is where the red data-date line and the end of the
+  // green actual curve sit, regardless of where the bucket boundaries fall.
+  const fracBefore = (st, en, date) => {
+    if (!st) return 0;
+    const e = en || st;
+    if (e <= date) return 1;
+    if (st >= date) return 0;
+    return e > st ? (date - st) / (e - st) : 1;
+  };
+  let baseDD = 0, curDD = 0, earnDD = 0;
+  acts.forEach((a) => {
+    const bval = basis(a);
+    if (bval <= 0) return;
+    baseDD += bval * fracBefore(a.targetStart || a.start, a.targetEnd || a.finish, dd);
+    curDD += bval * fracBefore(a.start || a.targetStart, a.finish || a.targetEnd, dd);
+    earnDD += bval * (a.pctComplete / 100); // earned work is, by definition, at/behind the data date
+  });
+  plannedAtDD = curDD; baselineAtDD = baseDD; earnedAtDD = earnDD;
+
+  const anchor = {
+    date: new Date(dd.getTime()), dd: true, isPast: true,
+    baseline: (baseDD / denom) * 100,
+    current: (curDD / denom) * 100,
+    actual: (earnDD / denom) * 100,
+  };
+  const insAt = rows.findIndex((r) => r.date > dd);
+  if (insAt < 0) rows.push(anchor); else rows.splice(insAt, 0, anchor);
 
   let display = rows;
   if (from) display = display.filter((r) => nextB(r.date) > from);

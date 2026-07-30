@@ -9,68 +9,6 @@ function niceMonthLabel(d) {
   return d.toLocaleDateString("en-GB", { month: "short", year: "2-digit" });
 }
 
-// ── S-Curve: PV / EV / AC cumulative ─────────────────────────
-export function SCurveChart({ data, height = 320, fmt }) {
-  const rows = data.rows;
-  const W = 860, H = height, pad = { l: 64, r: 24, t: 20, b: 40 };
-  const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
-  const maxY = Math.max(data.BAC, ...rows.map((r) => r.planned)) * 1.02 || 1;
-  const n = rows.length;
-  const x = (i) => pad.l + (n <= 1 ? 0 : (i / (n - 1)) * iw);
-  const y = (v) => pad.t + ih - (v / maxY) * ih;
-
-  const line = (key) =>
-    rows
-      .map((r, i) => (r[key] == null ? null : `${x(i)},${y(r[key])}`))
-      .filter(Boolean)
-      .join(" ");
-
-  const ddIndex = rows.findIndex((r) => !r.isPast);
-  const ddX = ddIndex < 0 ? x(n - 1) : x(ddIndex);
-
-  const yticks = 5;
-  const step = Math.max(1, Math.floor(n / 8));
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block" }}>
-      {/* grid + y labels */}
-      {Array.from({ length: yticks + 1 }, (_, i) => {
-        const v = (maxY / yticks) * i;
-        return (
-          <g key={i}>
-            <line x1={pad.l} x2={W - pad.r} y1={y(v)} y2={y(v)} stroke={GRID} />
-            <text x={pad.l - 8} y={y(v) + 4} textAnchor="end" style={{ fontSize: 10, fill: LABEL, fontFamily: "var(--font-sans)" }}>
-              {fmt ? fmt(v) : Math.round(v)}
-            </text>
-          </g>
-        );
-      })}
-      {/* data-date marker */}
-      <line x1={ddX} x2={ddX} y1={pad.t} y2={pad.t + ih} stroke="var(--fg-4)" strokeDasharray="4 4" />
-      <text x={ddX} y={pad.t - 6} textAnchor="middle" style={{ fontSize: 10, fill: "var(--fg-4)", fontFamily: "var(--font-mono)" }}>
-        Data Date
-      </text>
-
-      {/* PV planned */}
-      <polyline points={line("planned")} fill="none" stroke="var(--brand-primary)" strokeWidth="2.5" />
-      {/* EV earned */}
-      <polyline points={line("earned")} fill="none" stroke="var(--success)" strokeWidth="2.5" />
-      {/* AC actual */}
-      <polyline points={line("actual")} fill="none" stroke="var(--warning)" strokeWidth="2.5" strokeDasharray="2 3" />
-
-      {/* x labels */}
-      {rows.map((r, i) =>
-        i % step === 0 ? (
-          <text key={i} x={x(i)} y={H - 14} textAnchor="middle" style={{ fontSize: 10, fill: LABEL, fontFamily: "var(--font-sans)" }}>
-            {niceMonthLabel(r.date)}
-          </text>
-        ) : null
-      )}
-      <line x1={pad.l} x2={W - pad.r} y1={pad.t + ih} y2={pad.t + ih} stroke={AXIS} />
-    </svg>
-  );
-}
-
 // ── Progress S-curve: Baseline (dashed) / Current (solid) / Actual (green) ──
 export function ProgressSCurveChart({ data, metricLabel, height = 360 }) {
   const [hover, setHover] = useState(null); // { i, x, y }
@@ -96,9 +34,13 @@ export function ProgressSCurveChart({ data, metricLabel, height = 360 }) {
       ` ${x(lastP.i)},${y(0)}`;
   }
 
+  // the exact data-date anchor (added by computeSCurves) drives the red line;
+  // fall back to the isPast transition if it isn't present.
+  const ddAnchor = rows.findIndex((r) => r.dd);
   const ddIndex = rows.findIndex((r) => !r.isPast);
   const ddXpos =
-    ddIndex < 0 ? x(n - 1) : ddIndex === 0 ? x(0) : (x(ddIndex) + x(ddIndex - 1)) / 2;
+    ddAnchor >= 0 ? x(ddAnchor)
+      : ddIndex < 0 ? x(n - 1) : ddIndex === 0 ? x(0) : (x(ddIndex) + x(ddIndex - 1)) / 2;
 
   const step = Math.max(1, Math.round(n / 24));
   const slot = n > 1 ? iw / (n - 1) : iw;
