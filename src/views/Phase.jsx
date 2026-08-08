@@ -3,7 +3,7 @@ import FilterBar, { FILTER_DEFAULTS } from "../components/FilterBar.jsx";
 import { GroupedBarChart, SeriesLegend } from "../components/charts.jsx";
 import { SectionTitle, StatusPill, AiCallout, KpiTile } from "../components/ui.jsx";
 import { Icon } from "../components/Icons.jsx";
-import { fmtMoneyShort, fmtDate, daysBetween } from "../lib/model.js";
+import { fmtMoneyShort, fmtDate, daysBetween, fmtPct } from "../lib/model.js";
 import {
   computePhaseAnalysis, makeActivityFilter, setPhaseRules, STD_PHASES, phaseInfoOf,
 } from "../lib/curves.js";
@@ -29,7 +29,7 @@ function phaseNarrative(p, acts, hasCost, money) {
     risks.push(`${crit.length} ${crit.length === 1 ? "activity sits" : "activities sit"} on the critical path with zero float — any slip here flows straight through to the project completion date.`);
   }
   if (p.spi < 0.95 && p.done < p.total) {
-    risks.push(`Behind plan at SPI ${p.spi.toFixed(2)} — only ${p.pctComplete}% of the phase is complete, so it is earning value slower than the baseline scheduled.`);
+    risks.push(`Behind plan at SPI ${p.spi.toFixed(2)} — only ${fmtPct(p.pctComplete)} of the phase is complete, so it is earning value slower than the baseline scheduled.`);
   }
   if (cpi != null && cpi < 0.95) {
     risks.push(`Cost over-running: actuals of ${money(p.actual)} exceed the ${money(p.earned)} of value earned (CPI ${cpi.toFixed(2)}), pointing to productivity or scope pressure.`);
@@ -60,7 +60,7 @@ function phaseNarrative(p, acts, hasCost, money) {
   if (p.total > 0 && p.done === p.total) {
     opps.push(`Phase delivered (${p.total}/${p.total} complete) — release its resources to live fronts and capture lessons learned for similar scope.`);
   } else if (p.pctComplete >= 80) {
-    opps.push(`At ${p.pctComplete}% complete the phase is nearing handover — front-loading QA and close-out now locks in an on-time finish.`);
+    opps.push(`At ${fmtPct(p.pctComplete)} complete the phase is nearing handover — front-loading QA and close-out now locks in an on-time finish.`);
   }
 
   if (!risks.length) risks.push(p.done === p.total ? "No open risks — the phase is delivered." : "No material schedule, cost or logic risks are flagged for this phase.");
@@ -257,7 +257,7 @@ export default function Phase({ a }) {
                   <td style={{ textAlign: "right" }}>{p.done}</td>
                   <td style={{ textAlign: "right" }}>{p.inProg}</td>
                   <td style={{ textAlign: "right" }}>{p.remaining}</td>
-                  <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{p.pctComplete}%</td>
+                  <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{fmtPct(p.pctComplete)}</td>
                   <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums", fontWeight: 700, color: p.spi < 0.95 ? "var(--danger-ink)" : p.spi > 1.05 ? "var(--success-ink)" : "var(--fg-1)" }}>{p.spi.toFixed(2)}</td>
                   <td><StatusPill tone={p.floatRisk === "High" ? "danger" : p.floatRisk === "Medium" ? "warning" : "success"}>{p.floatRisk}</StatusPill></td>
                   <td>{fmtDate(p.fcstEnd)}</td>
@@ -405,7 +405,7 @@ export default function Phase({ a }) {
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
                   <strong className="body-1" style={{ color: "var(--fg-1)" }}>{p.name}</strong>
                   <span className="body-2" style={{ color: headTone, fontWeight: 600 }}>
-                    {p.pctComplete}% complete · {p.done}/{p.total} done · SPI {p.spi.toFixed(2)} · {p.floatRisk} float risk
+                    {fmtPct(p.pctComplete)} complete · {p.done}/{p.total} done · SPI {p.spi.toFixed(2)} · {p.floatRisk} float risk
                   </span>
                   {p.src.name > 0 && <em className="body-2 muted" style={{ fontSize: 12 }}>· {p.src.name} AI-categorised</em>}
                 </div>

@@ -1,7 +1,7 @@
 import { SectionTitle, StatusPill, ProgressBar, KpiTile } from "../components/ui.jsx";
 import { BarChart } from "../components/charts.jsx";
 import { Icon } from "../components/Icons.jsx";
-import { fmtMoneyShort } from "../lib/model.js";
+import { fmtMoneyShort, fmtPct } from "../lib/model.js";
 
 // Shared by Phase Analysis (WBS) and Discipline Analysis.
 export default function Rollup({ a, mode }) {
@@ -12,14 +12,14 @@ export default function Rollup({ a, mode }) {
   const icon = mode === "phase" ? <Icon.layers size={18} /> : <Icon.sliders size={18} />;
 
   const negGroups = rows.filter((r) => r.floatStatus === "Negative").length;
-  const avgPct = Math.round(rows.reduce((s, r) => s + r.pctComplete, 0) / (rows.length || 1));
+  const avgPct = Math.round((rows.reduce((s, r) => s + r.pctComplete, 0) / (rows.length || 1)) * 10) / 10;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div className="g-tiles">
         <KpiTile label={mode === "phase" ? "WBS phases" : "Disciplines"} value={rows.length} sub="in schedule" />
         <KpiTile label="Groups at risk" value={negGroups} sub="negative float" tone={negGroups ? "danger" : "success"} />
-        <KpiTile label="Average progress" value={avgPct + "%"} sub="across groups" />
+        <KpiTile label="Average progress" value={fmtPct(avgPct)} sub="across groups" />
       </div>
 
       <div className="card card-pad">
@@ -60,7 +60,7 @@ export default function Rollup({ a, mode }) {
                   <td>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <ProgressBar value={r.pctComplete} tone={r.pctComplete === 100 ? "success" : "info"} />
-                      <span className="body-2" style={{ fontVariantNumeric: "tabular-nums", width: 34, textAlign: "right" }}>{r.pctComplete}%</span>
+                      <span className="body-2" style={{ fontVariantNumeric: "tabular-nums", width: 34, textAlign: "right" }}>{fmtPct(r.pctComplete)}</span>
                     </div>
                   </td>
                   {model.hasCost && <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{fmtMoneyShort(r.budget, cur)}</td>}

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Icon } from "./Icons.jsx";
-import { fmtDate, fmtMoney, fmtMoneyShort } from "../lib/model.js";
+import { fmtDate, fmtMoney, fmtMoneyShort, fmtPct } from "../lib/model.js";
 import { buildReport } from "../lib/report.js";
 import { floatNarrative } from "../lib/float.js";
 import {
@@ -207,7 +207,7 @@ export default function Report({ a, onClose }) {
                       <Td strong>{t.code}</Td>
                       <Td>{t.name}</Td>
                       <Td>{t.wbs}</Td>
-                      <Td>{t.pct}%</Td>
+                      <Td>{fmtPct(t.pct)}</Td>
                       <Td><span style={{ color: t.delayed ? "var(--danger-ink)" : "var(--fg-3)", fontWeight: t.delayed ? 700 : 400 }}>{t.float.toFixed(1)}d</span></Td>
                     </tr>
                   ))}
@@ -318,7 +318,7 @@ export default function Report({ a, onClose }) {
             <Stat big value={String(floatA.counts.critical)} label="Critical (TF ≤ 0)" valueColor="var(--warning-ink)" />
             <Stat big value={String(floatA.counts.negative)} label="Negative float" valueColor={floatA.counts.negative ? "var(--danger-ink)" : "var(--success-ink)"} />
             <Stat big value={String(floatA.counts.nearCritical)} label="Near-critical (1–10d)" />
-            <Stat big value={`${floatA.criticalPct}%`} label="Critical %" valueColor={floatA.criticalPct > 25 ? "var(--danger-ink)" : "var(--fg-1)"} />
+            <Stat big value={fmtPct(floatA.criticalPct)} label="Critical %" valueColor={floatA.criticalPct > 25 ? "var(--danger-ink)" : "var(--fg-1)"} />
           </div>
           <div style={S.detailHdr}>Total float distribution</div>
           <ReportTable head={["Band", "Activities"]} rows={floatA.buckets.map((b) => [b.label, String(b.count)])} />
@@ -354,7 +354,7 @@ export default function Report({ a, onClose }) {
         <ReportPage title="Phase Analysis" project={r.projectName} period={r.period}>
           <ReportTable head={["Phase", "Acts", "Done", "In prog", "Remaining", "% Compl", "SPI", "Float risk", "Fcst end"]}
             rows={phases.map((p) => [
-              p.name, String(p.total), String(p.done), String(p.inProg), String(p.remaining), `${p.pctComplete}%`, p.spi.toFixed(2),
+              p.name, String(p.total), String(p.done), String(p.inProg), String(p.remaining), fmtPct(p.pctComplete), p.spi.toFixed(2),
               <Pill tone={p.floatRisk === "High" ? "danger" : p.floatRisk === "Medium" ? "warning" : "success"}>{p.floatRisk}</Pill>, fmtDate(p.fcstEnd),
             ])} />
         </ReportPage>
@@ -363,7 +363,7 @@ export default function Report({ a, onClose }) {
         <ReportPage title="Discipline Analysis" project={r.projectName} period={r.period}>
           <ReportTable head={["Discipline", "Acts", "Done", "In prog", "Remaining", "% Compl", "SPI", "Float risk", "Fcst end"]}
             rows={disciplines.map((p) => [
-              shortDisc(p.name), String(p.total), String(p.done), String(p.inProg), String(p.remaining), `${p.pctComplete}%`, p.spi.toFixed(2),
+              shortDisc(p.name), String(p.total), String(p.done), String(p.inProg), String(p.remaining), fmtPct(p.pctComplete), p.spi.toFixed(2),
               <Pill tone={p.floatRisk === "High" ? "danger" : p.floatRisk === "Medium" ? "warning" : "success"}>{p.floatRisk}</Pill>, fmtDate(p.fcstEnd),
             ])} />
           <DisciplineNarrative disciplines={disciplines} model={model} clashes={clashes} actsByDisc={actsByDisc} />

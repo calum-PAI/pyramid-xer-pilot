@@ -1,6 +1,6 @@
 import { KpiTile, Gauge, Donut, StatusPill, AiCallout, SectionTitle } from "../components/ui.jsx";
 import { Icon } from "../components/Icons.jsx";
-import { fmtMoney, fmtMoneyShort, fmtDate } from "../lib/model.js";
+import { fmtMoney, fmtMoneyShort, fmtDate, fmtPct } from "../lib/model.js";
 import { spiLabel, cpiLabel } from "../lib/evms.js";
 
 export default function Overview({ a }) {
@@ -26,7 +26,7 @@ export default function Overview({ a }) {
             <KpiTile label="% Planned" value={pct1(evms.pctPlanned)} sub="PV / BAC" />
             <KpiTile label="% Earned" value={pct1(evms.pctEarned)} sub="EV / BAC" />
             <KpiTile label="% Actual" value={pct1(evms.pctActual)} sub="AC / BAC" />
-            <KpiTile label="Float Health" value={`${floatA.criticalPct}%`} sub="Critical" tone={floatA.criticalPct > 25 ? "danger" : "info"} />
+            <KpiTile label="Float Health" value={fmtPct(floatA.criticalPct)} sub="Critical" tone={floatA.criticalPct > 25 ? "danger" : "info"} />
           </div>
           <div style={grid(6)}>
             <KpiTile label="BAC" value={fmtMoneyShort(evms.BAC, cur)} sub="Budget" />
@@ -44,7 +44,7 @@ export default function Overview({ a }) {
             <KpiTile label="% Planned" value={pct1(evms.pctPlanned)} sub="planned to date" />
             <KpiTile label="% Earned" value={pct1(evms.pctEarned)} sub="earned to date" />
             <KpiTile label="% Complete" value={pct1(c.complete / c.activities)} sub="activities done" />
-            <KpiTile label="Float Health" value={`${floatA.criticalPct}%`} sub="Critical" tone={floatA.criticalPct > 25 ? "danger" : "info"} />
+            <KpiTile label="Float Health" value={fmtPct(floatA.criticalPct)} sub="Critical" tone={floatA.criticalPct > 25 ? "danger" : "info"} />
             <KpiTile label="DCMA" value={`${dcma.passed}/${dcma.total}`} sub={dcma.rating} tone={dcma.passed >= 11 ? "success" : dcma.passed >= 8 ? "warning" : "danger"} />
           </div>
           <div className="card card-pad">
@@ -101,9 +101,9 @@ export default function Overview({ a }) {
           {model.hasCost ? (
             <Gauge value={evms.CPI} max={1.3} label="CPI" sub="cost" tone={cpiL.tone} format={(v) => v.toFixed(2)} />
           ) : (
-            <Gauge value={(c.complete / c.activities) * 100} max={100} label="% Complete" sub="activities" tone="info" format={(v) => Math.round(v) + "%"} />
+            <Gauge value={(c.complete / c.activities) * 100} max={100} label="% Complete" sub="activities" tone="info" format={(v) => v.toFixed(1) + "%"} />
           )}
-          <Gauge value={floatA.criticalPct} max={100} label="Float Health" sub="critical %" tone={floatA.criticalPct > 25 ? "danger" : "info"} format={(v) => Math.round(v) + "%"} />
+          <Gauge value={floatA.criticalPct} max={100} label="Float Health" sub="critical %" tone={floatA.criticalPct > 25 ? "danger" : "info"} format={(v) => v.toFixed(1) + "%"} />
           <Gauge value={dcma.passed} max={dcma.total} label="DCMA Score" sub={`of ${dcma.total}`} tone={dcma.passed >= 11 ? "success" : dcma.passed >= 8 ? "warning" : "danger"} format={(v) => Math.round(v)} />
         </div>
       </div>
@@ -162,7 +162,7 @@ export default function Overview({ a }) {
                   <tr key={w.name}>
                     <td style={{ fontWeight: 500, color: "var(--fg-1)" }}>{w.name}</td>
                     <td style={{ textAlign: "right" }}>{w.total}</td>
-                    <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{w.pctComplete}%</td>
+                    <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{fmtPct(w.pctComplete)}</td>
                     <td><StatusPill tone={floatStatusTone(w.floatStatus)}>{w.floatStatus}</StatusPill></td>
                     <td className="muted" style={{ fontSize: 12.5, lineHeight: 1.45, maxWidth: 360 }}>{wbsWhy(w)}</td>
                   </tr>

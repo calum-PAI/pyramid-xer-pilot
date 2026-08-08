@@ -522,7 +522,7 @@ export function computeWBS(model) {
       g.drivers.sort((x, y) => x.done - y.done || x.float - y.float);
       return {
         ...g,
-        pctComplete: Math.round(g.pctSum / g.total),
+        pctComplete: Math.round((g.pctSum / g.total) * 10) / 10,
         floatStatus:
           g.minFloat < 0 ? "Negative" : g.minFloat === 0 ? "Critical" : "Healthy",
       };
@@ -806,7 +806,7 @@ export function computePhaseAnalysis(model, opts = {}) {
       const spi = g.pv > 0 ? g.earned / g.pv : 1;
       // count-based average of physical % complete — reconciles with the
       // Done / In-prog / Remaining activity counts shown alongside it.
-      const pctComplete = g.total > 0 ? Math.round(g.pctSum / g.total) : 0;
+      const pctComplete = g.total > 0 ? Math.round((g.pctSum / g.total) * 10) / 10 : 0;
       // cost/duration-weighted % (earned value) kept for reference / tooltips
       const pctEarned = g.budget > 0 ? Math.round((g.earned / g.budget) * 100) : 0;
       const floatRisk =
@@ -879,7 +879,7 @@ export function computeDisciplineHeatMap(model, opts = {}) {
     cells[d] = {};
     months.forEach((m) => {
       const p = planned[d][m.key] || 0;
-      if (p > 0) cells[d][m.key] = { pct: Math.round(((earned[d][m.key] || 0) / p) * 100), planned: p };
+      if (p > 0) cells[d][m.key] = { pct: Math.round(((earned[d][m.key] || 0) / p) * 1000) / 10, planned: p };
     });
   });
 
@@ -947,7 +947,7 @@ export function computeDiscipline(model) {
   return Object.values(groups)
     .map((g) => ({
       ...g,
-      pctComplete: Math.round(g.pctSum / g.total),
+      pctComplete: Math.round((g.pctSum / g.total) * 10) / 10,
       floatStatus:
         g.minFloat < 0 ? "Negative" : g.minFloat === 0 ? "Critical" : "Healthy",
     }))

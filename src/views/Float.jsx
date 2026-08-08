@@ -1,7 +1,7 @@
 import { SectionTitle, KpiTile, StatusPill, AiCallout } from "../components/ui.jsx";
 import { BarChart } from "../components/charts.jsx";
 import { Icon } from "../components/Icons.jsx";
-import { fmtDate } from "../lib/model.js";
+import { fmtDate, fmtPct } from "../lib/model.js";
 import { floatNarrative } from "../lib/float.js";
 
 function NarrativeList({ title, tone, items, icon }) {
@@ -36,7 +36,7 @@ export default function Float({ a }) {
         <KpiTile label="Critical activities" value={floatA.counts.critical} sub="total float ≤ 0" tone="warning" />
         <KpiTile label="Negative float" value={floatA.counts.negative} sub="behind constraint" tone={floatA.counts.negative ? "danger" : "success"} />
         <KpiTile label="Near-critical" value={floatA.counts.nearCritical} sub="1–10 days float" tone="info" />
-        <KpiTile label="Critical %" value={floatA.criticalPct + "%"} sub="of all activities" tone={floatA.criticalPct > 25 ? "danger" : "info"} />
+        <KpiTile label="Critical %" value={fmtPct(floatA.criticalPct)} sub="of all activities" tone={floatA.criticalPct > 25 ? "danger" : "info"} />
       </div>
 
       <div className="g-split-2-3">

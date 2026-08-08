@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { SectionTitle, StatusPill, KpiTile, AiCallout, Segmented } from "../components/ui.jsx";
 import { Icon } from "../components/Icons.jsx";
-import { fmtDate } from "../lib/model.js";
+import { fmtDate, fmtPct } from "../lib/model.js";
 import { computeLookAheadDetail } from "../lib/curves.js";
 
 const WEEKS = [["2", "2-Week"], ["4", "4-Week"], ["6", "6-Week"]];
@@ -75,7 +75,7 @@ export default function LookAhead({ a }) {
                     <td>{fmtDate(t.start)}</td>
                     <td>{fmtDate(t.finish)}</td>
                     <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{t.targetDur.toFixed(0)}d</td>
-                    <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{t.pctComplete}%</td>
+                    <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{fmtPct(t.pctComplete)}</td>
                     <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums", color: t.totalFloat < 0 ? "var(--danger-ink)" : "var(--fg-3)", fontWeight: t.totalFloat <= 0 ? 700 : 400 }}>{t.totalFloat.toFixed(1)}d</td>
                     <td><StatusPill tone={t.status === "TK_Active" ? "warning" : "neutral"}>{t.statusLabel}</StatusPill></td>
                   </tr>

@@ -3,7 +3,7 @@ import FilterBar, { FILTER_DEFAULTS } from "../components/FilterBar.jsx";
 import { GroupedBarChart, SeriesLegend } from "../components/charts.jsx";
 import { SectionTitle, StatusPill, AiCallout, KpiTile } from "../components/ui.jsx";
 import { Icon } from "../components/Icons.jsx";
-import { fmtMoneyShort, fmtDate } from "../lib/model.js";
+import { fmtMoneyShort, fmtDate, fmtPct } from "../lib/model.js";
 import {
   computeDisciplineAnalysis,
   computeDisciplineHeatMap,
@@ -101,7 +101,7 @@ export default function Discipline({ a }) {
                   <td style={{ textAlign: "right" }}>{p.done}</td>
                   <td style={{ textAlign: "right" }}>{p.inProg}</td>
                   <td style={{ textAlign: "right" }}>{p.remaining}</td>
-                  <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{p.pctComplete}%</td>
+                  <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{fmtPct(p.pctComplete)}</td>
                   <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums", fontWeight: 700, color: p.spi < 0.95 ? "var(--danger-ink)" : p.spi > 1.05 ? "var(--success-ink)" : "var(--fg-1)" }}>{p.spi.toFixed(2)}</td>
                   <td><StatusPill tone={p.floatRisk === "High" ? "danger" : p.floatRisk === "Medium" ? "warning" : "success"}>{p.floatRisk}</StatusPill></td>
                   <td>{fmtDate(p.fcstEnd)}</td>
@@ -138,9 +138,9 @@ export default function Discipline({ a }) {
                     if (!cell) return <td key={mo.key} style={HM.empty}>·</td>;
                     const c = heatColor(cell.pct);
                     return (
-                      <td key={mo.key} title={`${shortDisc(d)} · ${mo.date.toLocaleDateString("en-GB", { month: "short", year: "numeric" })}: ${cell.pct}% complete`}
+                      <td key={mo.key} title={`${shortDisc(d)} · ${mo.date.toLocaleDateString("en-GB", { month: "short", year: "numeric" })}: ${fmtPct(cell.pct)} complete`}
                         style={{ ...HM.cell, background: c.bg, color: c.fg }}>
-                        {cell.pct}
+                        {Math.round(cell.pct)}
                       </td>
                     );
                   })}
@@ -246,7 +246,7 @@ export default function Discipline({ a }) {
                     <li key={p.name} style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
                       <span style={{ width: 6, height: 6, borderRadius: 9999, background: p.floatRisk === "Medium" ? "var(--warning)" : "var(--success)", marginTop: 6, flex: "0 0 6px" }} />
                       <span className="body-2" style={{ color: "var(--fg-3)", fontSize: 12.5 }}>
-                        <strong style={{ color: "var(--fg-1)" }}>{shortDisc(p.name)}</strong>: {p.pctComplete}% complete, {p.done}/{p.total} done —{" "}
+                        <strong style={{ color: "var(--fg-1)" }}>{shortDisc(p.name)}</strong>: {fmtPct(p.pctComplete)} complete, {p.done}/{p.total} done —{" "}
                         {p.floatRisk === "Medium" ? "some near-critical float, monitor closely" : "healthy float"}{p.spi < 0.95 ? `, behind plan (SPI ${p.spi.toFixed(2)})` : ""}.
                       </span>
                     </li>

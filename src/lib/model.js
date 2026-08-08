@@ -143,6 +143,7 @@ export function buildModel(parsed) {
       else if (status === "TK_NotStart") pct = 0;
       else if (!pct && targetDur > 0)
         pct = Math.max(0, Math.min(100, (1 - remainDur / targetDur) * 100));
+      pct = Math.round(pct * 10) / 10; // physical % complete to 1 dp
 
       const start =
         xdate(x.act_start_date) ||
@@ -312,6 +313,11 @@ function indianGroup(n) {
   const last3 = s.slice(-3);
   const rest = s.slice(0, -3);
   return rest.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + "," + last3;
+}
+
+// Percentage → always one decimal place, e.g. 34.4% (v is 0–100).
+export function fmtPct(v) {
+  return (Number(v) || 0).toFixed(1) + "%";
 }
 
 export function fmtDate(d) {

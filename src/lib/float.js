@@ -45,9 +45,7 @@ export function computeFloat(model) {
   // Critical activities (now incomplete-only) as a share of the whole schedule —
   // denominator kept as total activities so it reconciles with the "N of total"
   // wording used in the float narrative.
-  const criticalPct = acts.length
-    ? Math.round((critical.length / acts.length) * 100)
-    : 0;
+  const criticalPct = acts.length ? Math.round((critical.length / acts.length) * 1000) / 10 : 0;
 
   return {
     critical,
