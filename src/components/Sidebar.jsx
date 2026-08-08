@@ -1,6 +1,9 @@
 import logo from "../assets/logo.svg";
 import { Icon } from "./Icons.jsx";
 
+// Injected by Vite (define) from package.json — see vite.config.js
+const APP_VERSION = typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "";
+
 // Pyramid mark (collapsed-sidebar logo) — inline SVG so it never 404s.
 function BrandMark({ className, style }) {
   return (
@@ -99,10 +102,11 @@ export default function Sidebar({ active, onNav, ready, collapsed = false, onTog
             style={{ transform: collapsed ? "none" : "rotate(180deg)", transition: "transform .2s var(--ease-out)" }} />
         </button>
       </div>
-      <div className="sb-group" style={{ padding: "0 16px 6px" }}>
+      <div className="sb-group" style={{ padding: "0 16px 6px", display: "flex", alignItems: "baseline", gap: 8 }}>
         <div className="eyebrow" style={{ fontSize: 10, color: "var(--brand-primary)" }}>
           Schedule Intelligence
         </div>
+        <span className="sb-label" style={{ fontSize: 10, color: "var(--fg-4)", fontWeight: 600 }}>v{APP_VERSION}</span>
       </div>
 
       <div style={{ flex: 1, overflowY: "auto", padding: "8px 12px 12px" }}>
