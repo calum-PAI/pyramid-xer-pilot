@@ -8,11 +8,14 @@ export default function Settings({ a, onExport }) {
   const { model, evms, dcma, floatA } = a;
 
   const downloadActivitiesCSV = () => {
-    const head = ["Act ID", "Name", "WBS", "Status", "% Complete", "Start", "Finish", "Total Float (d)", "Critical", "Budget", "Actual Cost"];
+    // Cost columns are only included when the schedule is actually cost-loaded.
+    const head = ["Act ID", "Name", "WBS", "Status", "% Complete", "Start", "Finish", "Total Float (d)", "Critical",
+      ...(model.hasCost ? ["Budget", "Actual Cost"] : [])];
     const rows = model.activities.map((t) => [
       t.code, t.name, t.wbs, t.statusLabel, t.pctComplete,
       t.start ? fmtDate(t.start) : "", t.finish ? fmtDate(t.finish) : "",
-      t.totalFloat.toFixed(1), t.critical ? "Y" : "N", Math.round(t.budget), Math.round(t.actualCost),
+      t.totalFloat.toFixed(1), t.critical ? "Y" : "N",
+      ...(model.hasCost ? [Math.round(t.budget), Math.round(t.actualCost)] : []),
     ]);
     const csv = [head, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
     download(`${model.project.shortName}-activities.csv`, csv, "text/csv");
@@ -22,11 +25,12 @@ export default function Settings({ a, onExport }) {
     const summary = {
       project: model.project.name,
       dataDate: fmtDate(model.project.dataDate),
+      costLoaded: model.hasCost,
       counts: model.counts,
-      evms: {
-        SPI: +evms.SPI.toFixed(3), CPI: +evms.CPI.toFixed(3),
-        BAC: Math.round(evms.BAC), EAC: Math.round(evms.EAC), VAC: Math.round(evms.VAC),
-      },
+      // EVM: cost indices only when cost-loaded; otherwise schedule metrics only
+      evms: model.hasCost
+        ? { SPI: +evms.SPI.toFixed(3), CPI: +evms.CPI.toFixed(3), BAC: Math.round(evms.BAC), EAC: Math.round(evms.EAC), VAC: Math.round(evms.VAC) }
+        : { SPI: +evms.SPI.toFixed(3), pctPlanned: +(evms.pctPlanned * 100).toFixed(1), pctEarned: +(evms.pctEarned * 100).toFixed(1), note: "Not cost-loaded — no cost metrics" },
       dcma: { score: `${dcma.passed}/${dcma.total}`, rating: dcma.rating, cpli: +dcma.cpli.toFixed(2), bei: +dcma.bei.toFixed(2) },
       float: floatA.counts,
       risks: a.risks.map((r) => ({ id: r.id, title: r.title, severity: r.severity, score: r.score })),

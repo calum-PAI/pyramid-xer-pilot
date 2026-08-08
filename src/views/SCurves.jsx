@@ -14,7 +14,10 @@ export default function SCurves({ a }) {
   const { model } = a;
   const cur = model.project.currency;
   const [applied, setApplied] = useState(FILTER_DEFAULTS);
-  const [metric, setMetric] = useState("cost");
+  // "Cost" is only offered when the schedule is cost-loaded — otherwise there is
+  // no cost to curve, so default to % complete and hide the Cost option.
+  const metricOpts = model.hasCost ? METRICS : METRICS.filter(([k]) => k !== "cost");
+  const [metric, setMetric] = useState(model.hasCost ? "cost" : "pct");
   const [period, setPeriod] = useState("week");
 
   const sc = useMemo(
@@ -52,7 +55,7 @@ export default function SCurves({ a }) {
 
       <div className="card card-pad">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
-          <Segmented options={METRICS} value={metric} onChange={setMetric} />
+          <Segmented options={metricOpts} value={metric} onChange={setMetric} />
           <Segmented options={PERIODS} value={period} onChange={setPeriod} />
         </div>
 

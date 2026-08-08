@@ -17,23 +17,45 @@ export default function Overview({ a }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* KPI strip */}
-      <div style={grid(6)}>
-        <KpiTile label="SPI" value={evms.SPI.toFixed(2)} sub="Schedule" tone={spiL.tone} />
-        <KpiTile label="CPI" value={evms.CPI.toFixed(2)} sub="Cost" tone={cpiL.tone} />
-        <KpiTile label="% Planned" value={pct1(evms.pctPlanned)} sub="PV / BAC" />
-        <KpiTile label="% Earned" value={pct1(evms.pctEarned)} sub="EV / BAC" />
-        <KpiTile label="% Actual" value={pct1(evms.pctActual)} sub="AC / BAC" />
-        <KpiTile label="Float Health" value={`${floatA.criticalPct}%`} sub="Critical" tone={floatA.criticalPct > 25 ? "danger" : "info"} />
-      </div>
-      <div style={grid(6)}>
-        <KpiTile label="BAC" value={fmtMoneyShort(evms.BAC, cur)} sub="Budget" />
-        <KpiTile label="EAC" value={fmtMoneyShort(evms.EAC, cur)} sub="Forecast" />
-        <KpiTile label="ETC" value={fmtMoneyShort(evms.ETC, cur)} sub="To complete" />
-        <KpiTile label="VAC" value={fmtMoneyShort(evms.VAC, cur)} sub="Variance" tone={evms.VAC < 0 ? "danger" : "success"} />
-        <KpiTile label="TCPI" value={evms.TCPI.toFixed(2)} sub="To complete" />
-        <KpiTile label="DCMA" value={`${dcma.passed}/${dcma.total}`} sub={dcma.rating} tone={dcma.passed >= 11 ? "success" : dcma.passed >= 8 ? "warning" : "danger"} />
-      </div>
+      {/* KPI strip — cost KPIs only when the schedule is cost-loaded */}
+      {model.hasCost ? (
+        <>
+          <div style={grid(6)}>
+            <KpiTile label="SPI" value={evms.SPI.toFixed(2)} sub="Schedule" tone={spiL.tone} />
+            <KpiTile label="CPI" value={evms.CPI.toFixed(2)} sub="Cost" tone={cpiL.tone} />
+            <KpiTile label="% Planned" value={pct1(evms.pctPlanned)} sub="PV / BAC" />
+            <KpiTile label="% Earned" value={pct1(evms.pctEarned)} sub="EV / BAC" />
+            <KpiTile label="% Actual" value={pct1(evms.pctActual)} sub="AC / BAC" />
+            <KpiTile label="Float Health" value={`${floatA.criticalPct}%`} sub="Critical" tone={floatA.criticalPct > 25 ? "danger" : "info"} />
+          </div>
+          <div style={grid(6)}>
+            <KpiTile label="BAC" value={fmtMoneyShort(evms.BAC, cur)} sub="Budget" />
+            <KpiTile label="EAC" value={fmtMoneyShort(evms.EAC, cur)} sub="Forecast" />
+            <KpiTile label="ETC" value={fmtMoneyShort(evms.ETC, cur)} sub="To complete" />
+            <KpiTile label="VAC" value={fmtMoneyShort(evms.VAC, cur)} sub="Variance" tone={evms.VAC < 0 ? "danger" : "success"} />
+            <KpiTile label="TCPI" value={evms.TCPI.toFixed(2)} sub="To complete" />
+            <KpiTile label="DCMA" value={`${dcma.passed}/${dcma.total}`} sub={dcma.rating} tone={dcma.passed >= 11 ? "success" : dcma.passed >= 8 ? "warning" : "danger"} />
+          </div>
+        </>
+      ) : (
+        <>
+          <div style={grid(6)}>
+            <KpiTile label="SPI" value={evms.SPI.toFixed(2)} sub="schedule" tone={spiL.tone} />
+            <KpiTile label="% Planned" value={pct1(evms.pctPlanned)} sub="planned to date" />
+            <KpiTile label="% Earned" value={pct1(evms.pctEarned)} sub="earned to date" />
+            <KpiTile label="% Complete" value={pct1(c.complete / c.activities)} sub="activities done" />
+            <KpiTile label="Float Health" value={`${floatA.criticalPct}%`} sub="Critical" tone={floatA.criticalPct > 25 ? "danger" : "info"} />
+            <KpiTile label="DCMA" value={`${dcma.passed}/${dcma.total}`} sub={dcma.rating} tone={dcma.passed >= 11 ? "success" : dcma.passed >= 8 ? "warning" : "danger"} />
+          </div>
+          <div className="card card-pad">
+            <div className="body-2" style={{ color: "var(--fg-3)", lineHeight: 1.5 }}>
+              <strong style={{ color: "var(--fg-1)" }}>Not cost-loaded.</strong> This schedule carries no cost or resource rates,
+              so cost metrics (BAC, EAC, CPI and cost variances) cannot be derived and are not shown. The earned-value figures here
+              are <strong>schedule- and progress-based</strong> (duration / man-hour weighted), not monetary.
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Project summary + gauges */}
       <div className="g-split-3-2">
@@ -76,7 +98,11 @@ export default function Overview({ a }) {
         <SectionTitle icon={<Icon.activity size={18} />}>Schedule Health Gauges</SectionTitle>
         <div className="g-gauges">
           <Gauge value={evms.SPI} max={1.3} label="SPI" sub="schedule" tone={spiL.tone} format={(v) => v.toFixed(2)} />
-          <Gauge value={evms.CPI} max={1.3} label="CPI" sub="cost" tone={cpiL.tone} format={(v) => v.toFixed(2)} />
+          {model.hasCost ? (
+            <Gauge value={evms.CPI} max={1.3} label="CPI" sub="cost" tone={cpiL.tone} format={(v) => v.toFixed(2)} />
+          ) : (
+            <Gauge value={(c.complete / c.activities) * 100} max={100} label="% Complete" sub="activities" tone="info" format={(v) => Math.round(v) + "%"} />
+          )}
           <Gauge value={floatA.criticalPct} max={100} label="Float Health" sub="critical %" tone={floatA.criticalPct > 25 ? "danger" : "info"} format={(v) => Math.round(v) + "%"} />
           <Gauge value={dcma.passed} max={dcma.total} label="DCMA Score" sub={`of ${dcma.total}`} tone={dcma.passed >= 11 ? "success" : dcma.passed >= 8 ? "warning" : "danger"} format={(v) => Math.round(v)} />
         </div>

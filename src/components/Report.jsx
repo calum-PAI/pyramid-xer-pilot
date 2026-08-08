@@ -25,6 +25,7 @@ export default function Report({ a, onClose }) {
   const pdelta = r.actualPct - r.plannedPct;
 
   const { model, evms, dcma, floatA, histogram } = a;
+  const hasCost = model.hasCost; // when false, never render cost figures — schedule/work only
   // recomputed with the same engines the on-screen views use → figures align
   const scurveCost = useMemo(() => computeSCurves(model, { metric: "cost", period: "month" }), [model]);
   const histMonthly = useMemo(() => computeResourceHistogram(model, { period: "month", groupBy: "resource" }), [model]);
@@ -82,7 +83,7 @@ export default function Report({ a, onClose }) {
           <Section title="SPI & Actual Progress">
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
               <Stat big value={r.spiToDate.toFixed(2)} label="SPI To Date" valueColor={spiTone(r.spiToDate)} sub={`Last month  ${r.spiLastMonth.toFixed(2)}`} />
-              <Stat big value={money(r.scheduleVar)} label="Schedule Var" valueColor={r.scheduleVar < 0 ? "var(--danger-ink)" : "var(--success-ink)"} sub={`Last month  ${money(r.scheduleVarLast)}`} />
+              <Stat big value={hasCost ? money(r.scheduleVar) : `${Math.round(r.scheduleVar)} d`} label="Schedule Var" valueColor={r.scheduleVar < 0 ? "var(--danger-ink)" : "var(--success-ink)"} sub={`Last month  ${hasCost ? money(r.scheduleVarLast) : Math.round(r.scheduleVarLast) + " d"}`} />
             </div>
 
             <MiniCard title="SPI">
@@ -225,39 +226,74 @@ export default function Report({ a, onClose }) {
 
         {/* ═══ Per-function pages ═══ */}
 
-        {/* EVMS */}
-        <ReportPage title="Earned Value (EVMS)" project={r.projectName} period={r.period}>
-          <div style={G4}>
-            <Stat big value={evms.SPI.toFixed(2)} label="SPI (Schedule)" valueColor={spiTone(evms.SPI)} sub={spiLabel(evms.SPI).text} />
-            <Stat big value={evms.CPI.toFixed(2)} label="CPI (Cost)" valueColor={spiTone(evms.CPI)} sub={cpiLabel(evms.CPI).text} />
-            <Stat big value={money(evms.BAC)} label="BAC" sub="budget at completion" />
-            <Stat big value={money(evms.EAC)} label="EAC" sub="estimate at completion" valueColor={evms.VAC < 0 ? "var(--danger-ink)" : "var(--fg-1)"} />
-          </div>
-          <ReportTable head={["Metric", "Formula", "Value", "Meaning"]}
-            rows={[
-              ["Planned Value (PV)", "BCWS", money(evms.PV), "Budgeted cost of work scheduled"],
-              ["Earned Value (EV)", "BCWP", money(evms.EV), "Budgeted cost of work performed"],
-              ["Actual Cost (AC)", "ACWP", money(evms.AC), "Actual cost of work performed"],
-              ["Schedule Variance", "SV = EV − PV", money(evms.SV), evms.SV < 0 ? "Behind schedule" : "Ahead of schedule"],
-              ["Cost Variance", "CV = EV − AC", money(evms.CV), evms.CV < 0 ? "Over budget" : "Under budget"],
-              ["Estimate to Complete", "ETC = EAC − AC", money(evms.ETC), "Forecast remaining cost"],
-              ["Variance at Completion", "VAC = BAC − EAC", money(evms.VAC), evms.VAC < 0 ? "Forecast over-run" : "Forecast saving"],
-              ["To-Complete Perf. Index", "TCPI", evms.TCPI.toFixed(2), "Efficiency required on remaining work"],
-              ["% Planned / Earned / Actual", "PV/EV/AC ÷ BAC", `${(evms.pctPlanned * 100).toFixed(1)}% / ${(evms.pctEarned * 100).toFixed(1)}% / ${(evms.pctActual * 100).toFixed(1)}%`, "Progress to date"],
-              ["Planned completion", "Contract / plan", fmtDate(model.project.planFinish), "Planned completion date from the schedule"],
-            ]} />
+        {/* EVMS — cost figures only when cost-loaded; otherwise schedule/work basis in days */}
+        <ReportPage title={hasCost ? "Earned Value (EVMS)" : "Earned Schedule (work-based)"} project={r.projectName} period={r.period}>
+          {hasCost ? (
+            <>
+              <div style={G4}>
+                <Stat big value={evms.SPI.toFixed(2)} label="SPI (Schedule)" valueColor={spiTone(evms.SPI)} sub={spiLabel(evms.SPI).text} />
+                <Stat big value={evms.CPI.toFixed(2)} label="CPI (Cost)" valueColor={spiTone(evms.CPI)} sub={cpiLabel(evms.CPI).text} />
+                <Stat big value={money(evms.BAC)} label="BAC" sub="budget at completion" />
+                <Stat big value={money(evms.EAC)} label="EAC" sub="estimate at completion" valueColor={evms.VAC < 0 ? "var(--danger-ink)" : "var(--fg-1)"} />
+              </div>
+              <ReportTable head={["Metric", "Formula", "Value", "Meaning"]}
+                rows={[
+                  ["Planned Value (PV)", "BCWS", money(evms.PV), "Budgeted cost of work scheduled"],
+                  ["Earned Value (EV)", "BCWP", money(evms.EV), "Budgeted cost of work performed"],
+                  ["Actual Cost (AC)", "ACWP", money(evms.AC), "Actual cost of work performed"],
+                  ["Schedule Variance", "SV = EV − PV", money(evms.SV), evms.SV < 0 ? "Behind schedule" : "Ahead of schedule"],
+                  ["Cost Variance", "CV = EV − AC", money(evms.CV), evms.CV < 0 ? "Over budget" : "Under budget"],
+                  ["Estimate to Complete", "ETC = EAC − AC", money(evms.ETC), "Forecast remaining cost"],
+                  ["Variance at Completion", "VAC = BAC − EAC", money(evms.VAC), evms.VAC < 0 ? "Forecast over-run" : "Forecast saving"],
+                  ["To-Complete Perf. Index", "TCPI", evms.TCPI.toFixed(2), "Efficiency required on remaining work"],
+                  ["% Planned / Earned / Actual", "PV/EV/AC ÷ BAC", `${(evms.pctPlanned * 100).toFixed(1)}% / ${(evms.pctEarned * 100).toFixed(1)}% / ${(evms.pctActual * 100).toFixed(1)}%`, "Progress to date"],
+                  ["Planned completion", "Contract / plan", fmtDate(model.project.planFinish), "Planned completion date from the schedule"],
+                ]} />
+            </>
+          ) : (
+            <>
+              <div style={{ ...S.noteBox }}>
+                <strong>Not cost-loaded.</strong> This schedule carries no cost or resource rates, so monetary earned-value
+                metrics (BAC, EAC, CPI, CV, VAC) cannot be derived and are omitted. The figures below are schedule- and
+                progress-based (duration-weighted), expressed in days.
+              </div>
+              <div style={G4}>
+                <Stat big value={evms.SPI.toFixed(2)} label="SPI (Schedule)" valueColor={spiTone(evms.SPI)} sub={spiLabel(evms.SPI).text} />
+                <Stat big value={`${(evms.pctPlanned * 100).toFixed(1)}%`} label="% Planned" sub="planned work to date" />
+                <Stat big value={`${(evms.pctEarned * 100).toFixed(1)}%`} label="% Earned" sub="earned work to date" valueColor="var(--success-ink)" />
+                <Stat big value={fmtDate(model.project.planFinish)} label="Planned completion" sub="contract / plan" />
+              </div>
+              <ReportTable head={["Metric", "Formula", "Value (work-days)", "Meaning"]}
+                rows={[
+                  ["Planned Work (PV)", "duration-weighted", `${Math.round(evms.PV)} d`, "Work scheduled to date"],
+                  ["Earned Work (EV)", "duration-weighted", `${Math.round(evms.EV)} d`, "Work performed to date"],
+                  ["Schedule Variance", "SV = EV − PV", `${Math.round(evms.SV)} d`, evms.SV < 0 ? "Behind schedule" : "Ahead of schedule"],
+                  ["Total planned work (BAC-equiv.)", "duration-weighted", `${Math.round(evms.BAC)} d`, "Total scheduled work"],
+                  ["Cost metrics (AC, CV, EAC, VAC, CPI)", "—", "Not available — no cost data", "Requires cost/rate loading in P6"],
+                ]} />
+            </>
+          )}
         </ReportPage>
 
-        {/* S-Curve */}
-        <ReportPage title="Cost S-Curve (PV / EV / AC)" project={r.projectName} period={r.period}>
-          <div style={G4}>
-            <Stat value={money(scurveCost.plannedAtDD)} label="Planned to date (PV)" />
-            <Stat value={money(scurveCost.earnedAtDD)} label="Earned to date (EV)" valueColor="var(--success-ink)" />
-            <Stat value={money(evms.AC)} label="Actual to date (AC)" valueColor="var(--warning-ink)" />
-            <Stat value={money(scurveCost.totalBasis)} label="Budget (BAC)" />
-          </div>
-          <ProgressSCurveChart data={scurveCost} metricLabel="Cost" height={300} />
-          <p className="body-2 muted" style={{ marginTop: 8 }}>Dashed = Baseline plan · Solid = Current planned · Green = Actual earned · Red line = Data date.</p>
+        {/* S-Curve — cost basis only when cost-loaded, otherwise a % progress curve */}
+        <ReportPage title={hasCost ? "Cost S-Curve (PV / EV / AC)" : "Progress S-Curve (% complete)"} project={r.projectName} period={r.period}>
+          {hasCost ? (
+            <div style={G4}>
+              <Stat value={money(scurveCost.plannedAtDD)} label="Planned to date (PV)" />
+              <Stat value={money(scurveCost.earnedAtDD)} label="Earned to date (EV)" valueColor="var(--success-ink)" />
+              <Stat value={money(evms.AC)} label="Actual to date (AC)" valueColor="var(--warning-ink)" />
+              <Stat value={money(scurveCost.totalBasis)} label="Budget (BAC)" />
+            </div>
+          ) : (
+            <div style={G4}>
+              <Stat value={`${(evms.pctPlanned * 100).toFixed(1)}%`} label="% Planned to date" />
+              <Stat value={`${(evms.pctEarned * 100).toFixed(1)}%`} label="% Earned to date" valueColor="var(--success-ink)" />
+              <Stat value={evms.SPI.toFixed(2)} label="SPI" valueColor={spiTone(evms.SPI)} />
+              <Stat value={`${Math.round(scurveCost.totalBasis)} d`} label="Total scope (work-days)" />
+            </div>
+          )}
+          <ProgressSCurveChart data={scurveCost} metricLabel={hasCost ? "Cost" : "% complete"} height={300} />
+          <p className="body-2 muted" style={{ marginTop: 8 }}>Dashed = Baseline plan · Solid = Current planned · Green = Actual earned · Red line = Data date.{!hasCost && " Curves are duration-weighted % complete — not cost."}</p>
         </ReportPage>
 
         {/* DCMA */}
@@ -611,4 +647,5 @@ const S = {
   thRow: {},
   tr: {},
   foot: { padding: "12px 20px", borderTop: "1px solid var(--border-1)", color: "var(--fg-4)", fontSize: 11, background: "var(--bg-wash)" },
+  noteBox: { background: "var(--bg-wash)", border: "1px solid var(--border-1)", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "var(--fg-3)", lineHeight: 1.5 },
 };

@@ -56,10 +56,12 @@ const INTENTS = [
       return A(
         [
           `${model.project.name} is ${pct(evms.pctEarned)} complete (${done} of ${tot} activities done), as of the data date ${fmtDate(model.project.dataDate)}.`,
-          `Schedule is ${s.text} (SPI ${evms.SPI.toFixed(2)}) and cost is ${c.text} (CPI ${evms.CPI.toFixed(2)}).`,
+          model.hasCost
+            ? `Schedule is ${s.text} (SPI ${evms.SPI.toFixed(2)}) and cost is ${c.text} (CPI ${evms.CPI.toFixed(2)}).`
+            : `Schedule is ${s.text} (SPI ${evms.SPI.toFixed(2)}). This schedule isn't cost-loaded, so no cost performance (CPI) is available.`,
         ],
         {
-          tone: s.tone === "danger" || c.tone === "danger" ? "danger" : s.tone === "warning" ? "warning" : "success",
+          tone: (s.tone === "danger" || (model.hasCost && c.tone === "danger")) ? "danger" : s.tone === "warning" ? "warning" : "success",
           bullets: [
             `Forecast finish ${fmtDate(evms.forecastFinish)} (plan ${fmtDate(model.project.planFinish)})`,
             `DCMA schedule quality ${dcma.passed}/${dcma.total} (${dcma.rating})`,
