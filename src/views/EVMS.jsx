@@ -57,7 +57,10 @@ export default function EVMS({ a }) {
 
         <div className="g-tiles" style={{ alignContent: "start" }}>
           <KpiTile label="% Planned" value={(evms.pctPlanned * 100).toFixed(1) + "%"} sub="PV / BAC" big />
-          <KpiTile label="% Earned" value={(evms.pctEarned * 100).toFixed(1) + "%"} sub="EV / BAC" tone="success" big />
+          {/* Earned value is only presented when the schedule is cost-loaded */}
+          {model.hasCost && (
+            <KpiTile label="% Earned" value={(evms.pctEarned * 100).toFixed(1) + "%"} sub="EV / BAC" tone="success" big />
+          )}
           {costMeasured ? (
             <KpiTile label="% Actual" value={(evms.pctActual * 100).toFixed(1) + "%"} sub="AC / BAC" tone="warning" big />
           ) : (
@@ -69,13 +72,13 @@ export default function EVMS({ a }) {
 
       <div className="card">
         <div style={{ padding: "18px 20px 4px" }}>
-          <SectionTitle icon={<Icon.activity size={18} />}>Earned Value Metrics</SectionTitle>
+          <SectionTitle icon={<Icon.activity size={18} />}>{model.hasCost ? "Earned Value Metrics" : "Schedule / Work Metrics"}</SectionTitle>
         </div>
         <div style={{ overflowX: "auto" }}>
           <table className="tbl">
             <thead><tr><th>Metric</th><th>Formula</th><th style={{ textAlign: "right" }}>Value</th><th>Meaning</th></tr></thead>
             <tbody>
-              {metrics.map(([name, formula, value, meaning, costDep]) => {
+              {metrics.filter(([, formula]) => model.hasCost || formula !== "EV").map(([name, formula, value, meaning, costDep]) => {
                 const muted = costDep && !costMeasured;
                 const neg = value < 0;
                 const isVar = /Variance/.test(name);

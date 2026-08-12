@@ -42,7 +42,7 @@ export default function Overview({ a }) {
           <div style={grid(6)}>
             <KpiTile label="SPI" value={evms.SPI.toFixed(2)} sub="schedule" tone={spiL.tone} />
             <KpiTile label="% Planned" value={pct1(evms.pctPlanned)} sub="planned to date" />
-            <KpiTile label="% Earned" value={pct1(evms.pctEarned)} sub="earned to date" />
+            {/* % Earned (earned value) is only shown when cost data is provided */}
             <KpiTile label="% Complete" value={pct1(c.complete / c.activities)} sub="activities done" />
             <KpiTile label="Float Health" value={fmtPct(floatA.criticalPct)} sub="Critical" tone={floatA.criticalPct > 25 ? "danger" : "info"} />
             <KpiTile label="DCMA" value={`${dcma.passed}/${dcma.total}`} sub={dcma.rating} tone={dcma.passed >= 11 ? "success" : dcma.passed >= 8 ? "warning" : "danger"} />
@@ -50,8 +50,9 @@ export default function Overview({ a }) {
           <div className="card card-pad">
             <div className="body-2" style={{ color: "var(--fg-3)", lineHeight: 1.5 }}>
               <strong style={{ color: "var(--fg-1)" }}>Not cost-loaded.</strong> This schedule carries no cost or resource rates,
-              so cost metrics (BAC, EAC, CPI and cost variances) cannot be derived and are not shown. The earned-value figures here
-              are <strong>schedule- and progress-based</strong> (duration / man-hour weighted), not monetary.
+              so <strong>earned value</strong> (EV / % earned) and cost metrics (BAC, EAC, CPI, cost variances) cannot be derived
+              and are not shown. The figures here are <strong>schedule- and progress-based</strong> — SPI, % planned and % complete
+              from the schedule's durations and dates.
             </div>
           </div>
         </>

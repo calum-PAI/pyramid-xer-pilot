@@ -253,23 +253,22 @@ export default function Report({ a, onClose }) {
           ) : (
             <>
               <div style={{ ...S.noteBox }}>
-                <strong>Not cost-loaded.</strong> This schedule carries no cost or resource rates, so monetary earned-value
-                metrics (BAC, EAC, CPI, CV, VAC) cannot be derived and are omitted. The figures below are schedule- and
-                progress-based (duration-weighted), expressed in days.
+                <strong>Not cost-loaded.</strong> This schedule carries no cost or resource rates, so earned value
+                (EV / % earned) and monetary metrics (BAC, EAC, CPI, CV, VAC) cannot be derived and are omitted. The
+                figures below are schedule- and progress-based (duration-weighted), expressed in days.
               </div>
               <div style={G4}>
                 <Stat big value={evms.SPI.toFixed(2)} label="SPI (Schedule)" valueColor={spiTone(evms.SPI)} sub={spiLabel(evms.SPI).text} />
                 <Stat big value={`${(evms.pctPlanned * 100).toFixed(1)}%`} label="% Planned" sub="planned work to date" />
-                <Stat big value={`${(evms.pctEarned * 100).toFixed(1)}%`} label="% Earned" sub="earned work to date" valueColor="var(--success-ink)" />
+                <Stat big value={`${((model.counts.complete / model.counts.activities) * 100).toFixed(1)}%`} label="% Complete" sub="activities done" valueColor="var(--success-ink)" />
                 <Stat big value={fmtDate(model.project.planFinish)} label="Planned completion" sub="contract / plan" />
               </div>
               <ReportTable head={["Metric", "Formula", "Value (work-days)", "Meaning"]}
                 rows={[
                   ["Planned Work (PV)", "duration-weighted", `${Math.round(evms.PV)} d`, "Work scheduled to date"],
-                  ["Earned Work (EV)", "duration-weighted", `${Math.round(evms.EV)} d`, "Work performed to date"],
                   ["Schedule Variance", "SV = EV − PV", `${Math.round(evms.SV)} d`, evms.SV < 0 ? "Behind schedule" : "Ahead of schedule"],
                   ["Total planned work (BAC-equiv.)", "duration-weighted", `${Math.round(evms.BAC)} d`, "Total scheduled work"],
-                  ["Cost metrics (AC, CV, EAC, VAC, CPI)", "—", "Not available — no cost data", "Requires cost/rate loading in P6"],
+                  ["Earned value & cost metrics (EV, AC, CV, EAC, VAC, CPI)", "—", "Not available — no cost data", "Requires cost/rate loading in P6"],
                 ]} />
             </>
           )}
@@ -287,13 +286,13 @@ export default function Report({ a, onClose }) {
           ) : (
             <div style={G4}>
               <Stat value={`${(evms.pctPlanned * 100).toFixed(1)}%`} label="% Planned to date" />
-              <Stat value={`${(evms.pctEarned * 100).toFixed(1)}%`} label="% Earned to date" valueColor="var(--success-ink)" />
+              <Stat value={`${((model.counts.complete / model.counts.activities) * 100).toFixed(1)}%`} label="% Complete" valueColor="var(--success-ink)" />
               <Stat value={evms.SPI.toFixed(2)} label="SPI" valueColor={spiTone(evms.SPI)} />
               <Stat value={`${Math.round(scurveCost.totalBasis)} d`} label="Total scope (work-days)" />
             </div>
           )}
           <ProgressSCurveChart data={scurveCost} metricLabel={hasCost ? "Cost" : "% complete"} height={300} />
-          <p className="body-2 muted" style={{ marginTop: 8 }}>Dashed = Baseline plan · Solid = Current planned · Green = Actual earned · Red line = Data date.{!hasCost && " Curves are duration-weighted % complete — not cost."}</p>
+          <p className="body-2 muted" style={{ marginTop: 8 }}>Dashed = Baseline plan · Solid = Current planned · Green = {hasCost ? "Actual earned" : "Actual progress"} · Red line = Data date.{!hasCost && " Curves are duration-weighted % complete — not cost."}</p>
         </ReportPage>
 
         {/* DCMA */}

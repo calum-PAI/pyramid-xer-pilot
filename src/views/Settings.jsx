@@ -30,7 +30,7 @@ export default function Settings({ a, onExport }) {
       // EVM: cost indices only when cost-loaded; otherwise schedule metrics only
       evms: model.hasCost
         ? { SPI: +evms.SPI.toFixed(3), CPI: +evms.CPI.toFixed(3), BAC: Math.round(evms.BAC), EAC: Math.round(evms.EAC), VAC: Math.round(evms.VAC) }
-        : { SPI: +evms.SPI.toFixed(3), pctPlanned: +(evms.pctPlanned * 100).toFixed(1), pctEarned: +(evms.pctEarned * 100).toFixed(1), note: "Not cost-loaded — no cost metrics" },
+        : { SPI: +evms.SPI.toFixed(3), pctPlanned: +(evms.pctPlanned * 100).toFixed(1), pctComplete: +((model.counts.complete / model.counts.activities) * 100).toFixed(1), note: "Not cost-loaded — earned value (EV) omitted; cost metrics require cost/rate loading" },
       dcma: { score: `${dcma.passed}/${dcma.total}`, rating: dcma.rating, cpli: +dcma.cpli.toFixed(2), bei: +dcma.bei.toFixed(2) },
       float: floatA.counts,
       risks: a.risks.map((r) => ({ id: r.id, title: r.title, severity: r.severity, score: r.score })),

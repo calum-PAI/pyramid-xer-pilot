@@ -55,7 +55,7 @@ const INTENTS = [
       const done = model.counts.complete, tot = model.counts.activities;
       return A(
         [
-          `${model.project.name} is ${pct(evms.pctEarned)} complete (${done} of ${tot} activities done), as of the data date ${fmtDate(model.project.dataDate)}.`,
+          `${model.project.name} is ${model.hasCost ? pct(evms.pctEarned) : pct(done / tot)} complete (${done} of ${tot} activities done), as of the data date ${fmtDate(model.project.dataDate)}.`,
           model.hasCost
             ? `Schedule is ${s.text} (SPI ${evms.SPI.toFixed(2)}) and cost is ${c.text} (CPI ${evms.CPI.toFixed(2)}).`
             : `Schedule is ${s.text} (SPI ${evms.SPI.toFixed(2)}). This schedule isn't cost-loaded, so no cost performance (CPI) is available.`,
